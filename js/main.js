@@ -80,7 +80,7 @@ function update()
 function main()
 {
 	init();
-	scene.push(STGScene());
+	scene.push(LoadingScene());
 	setInterval(update, 16);
 }
 
