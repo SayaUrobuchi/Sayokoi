@@ -102,3 +102,8 @@ function LoadingScene()
 	
 	return self;
 }
+
+function enter_loading()
+{
+	scene.push(LoadingScene());
+}

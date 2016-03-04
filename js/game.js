@@ -19,6 +19,9 @@ var IMAGE = {
 	SHOT_FLOWER: "p/flower_shot.png", 
 	SHOT_LETTER: "p/letter_shot.png", 
 	SHOT_CHOCOLATE: "p/chocolate_shot.png", 
+	ENEMY_TEST0: "p/184_vanp_tinasi.png", 
+	ENEMY_TEST1: "p/198_doragon.png", 
+	ENEMY_TEST2: "p/251_kikimora.png", 
 };
 var AUDIO = {
 	MASUPA: "a/masupa.mp3", 
