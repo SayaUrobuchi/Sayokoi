@@ -29,6 +29,10 @@ function is_preload_complete()
 	return image.__cnt == image.__max_cnt && audio.__cnt >= audio.__max_cnt;
 }
 
+function after_preload()
+{
+}
+
 var enemy = {};
 
 var KEY = {
@@ -38,19 +42,55 @@ var KEY = {
 	DOWN: 40, 
 	Z: 90, 
 	X: 88, 
+	C: 67, 
+	V: 86, 
+	A: 65, 
+	S: 83, 
 	R: 82, 
 	SHIFT: 16, 
 };
 
-KEY.ACCEPT = {};
-KEY.ACCEPT[KEY.MOVE_LEFT = KEY.LEFT] = true;
-KEY.ACCEPT[KEY.MOVE_UP = KEY.UP] = true;
-KEY.ACCEPT[KEY.MOVE_RIGHT = KEY.RIGHT] = true;
-KEY.ACCEPT[KEY.MOVE_DOWN = KEY.DOWN] = true;
-KEY.ACCEPT[KEY.FIRE = KEY.Z] = true;
-KEY.ACCEPT[KEY.BOMB = KEY.X] = true;
-KEY.ACCEPT[KEY.MODE = KEY.SHIFT] = true;
-KEY.ACCEPT[KEY.RE = KEY.R] = true;
+var INPUT = {
+	UNKNOWN: 0, 
+	LEFT: 1, 
+	DOWN: 2, 
+	UP: 3, 
+	RIGHT: 4, 
+	DECIDE: 5, 
+	CANCEL: 6, 
+	MENU: 7, 
+	SUB: 8, 
+	PAGEUP: 9, 
+	PAGEDOWN: 10, 
+};
+
+function parse_key(key)
+{
+	switch (key)
+	{
+	case KEY.LEFT:
+		return INPUT.LEFT;
+	case KEY.RIGHT:
+		return INPUT.RIGHT;
+	case KEY.UP:
+		return INPUT.UP;
+	case KEY.DOWN:
+		return INPUT.DOWN;
+	case KEY.C:
+		return INPUT.DECIDE;
+	case KEY.X:
+		return INPUT.CANCEL;
+	case KEY.V:
+		return INPUT.MENU;
+	case KEY.Z:
+		return INPUT.SUB;
+	case KEY.A:
+		return INPUT.PAGEUP;
+	case KEY.S:
+		return INPUT.PAGEDOWN;
+	}
+	return INPUT.UNKNOWN;
+}
 
 var COLOR = {
 	WHITE: "white", 
@@ -76,12 +116,12 @@ var UI = {
 };
 
 UI.SCREEN = {
-	WIDTH: 800, 
-	HEIGHT: 600, 
+	WIDTH: 1280, 
+	HEIGHT: 720, 
 };
 
 UI.LOADING = {
-	TEXT: "少女沐浴中", 
+	TEXT: "少女開店中", 
 	TEXT_COLOR: COLOR.TEXT, 
 	FONT: "60px "+UI.DEFAULT_FONT, 
 	ANI_IN_FCNT: 24, 
