@@ -1,2 +1,2 @@
-# Sayokoi
-2016 memorial for being together, made with lover
+# Chocodame
+2016 Valentine's Day, made for lover
