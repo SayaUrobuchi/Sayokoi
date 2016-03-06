@@ -132,6 +132,16 @@ function HuntScene()
 	
 	self.update_hand = function (g)
 	{
+		if (self.is_key(INPUT.DOWN))
+		{
+			self.hand_current = (self.hand_current+1) % self.hand.length;
+			self.key_delay(INPUT.DOWN, 10, 30);
+		}
+		if (self.is_key(INPUT.UP))
+		{
+			self.hand_current = (self.hand_current-1+self.hand.length) % self.hand.length;
+			self.key_delay(INPUT.UP, 10, 30);
+		}
 		var modify = -Math.floor((self.hand.length-1)/2);
 		var x_mod = 16;
 		var x_accr = .7;
@@ -235,22 +245,40 @@ function HuntScene()
 	{
 	}
 	
+	self.is_key = function(key)
+	{
+		return self.input[key] && (!self.input_delay[key] || self.fid >= self.input_delay[key]);
+	}
+	
+	self.key_delay = function (key, delay, first_delay)
+	{
+		if (first_delay && (!self.input_delay[key] || self.fid-self.input_delay[key] > delay))
+		{
+			delay = first_delay;
+		}
+		self.input_delay[key] = self.fid + delay;
+	}
+	
 	self.keyup = function (e)
 	{
 		var key = e.which || e.keyCode;
+		var res = parse_key(key);
+		if (res != INPUT.UNKNOWN)
+		{
+			self.input[res] = false;
+			self.input_delay[res] = 0;
+			return false;
+		}
 		return true;
 	}
 	
 	self.keydown = function (e)
 	{
 		var key = e.which || e.keyCode;
-		switch (parse_key(key))
+		var res = parse_key(key);
+		if (res != INPUT.UNKNOWN)
 		{
-		case INPUT.DOWN:
-			self.hand_current = (self.hand_current+1) % self.hand.length;
-			return false;
-		case INPUT.UP:
-			self.hand_current = (self.hand_current-1+self.hand.length) % self.hand.length;
+			self.input[res] = true;
 			return false;
 		}
 		return true;
@@ -259,6 +287,7 @@ function HuntScene()
 	self.clear_input = function ()
 	{
 		self.input = {};
+		self.input_delay = {};
 	}
 	
 	self.init();
