@@ -202,6 +202,17 @@ function HuntScene()
 	self.hand_pos_update = function (data)
 	{
 		var spd = .3;
+		var diff = Math.abs(data.real_y-data.y);
+		if (diff > UI.HAND.HEIGHT-10)
+		{
+			data.real_desc_a = 0;
+			data.real_desc_h = 0;
+		}
+		else
+		{
+			data.real_desc_a = lerp(data.real_desc_a, 1, .1);
+			data.real_desc_h = lerp(data.real_desc_h, UI.HAND.MAIN_HEIGHT-UI.HAND.HEIGHT, spd);
+		}
 		data.real_x = lerp(data.real_x, data.x, spd);
 		data.real_y = lerp(data.real_y, data.y, spd);
 		data.real_a = lerp(data.real_a, data.a, spd);
@@ -217,6 +228,8 @@ function HuntScene()
 			real_x: -UI.HAND.WIDTH, 
 			real_y: 12 + UI.HAND.HEIGHT*4, 
 			real_a: 0, 
+			real_desc_a: 0, 
+			real_desc_h: 0, 
 		});
 	}
 	

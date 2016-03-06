@@ -11,6 +11,8 @@ Card.draw_hand = function (id, g, field)
 	var x = field.hand_draw_pos.real_x;
 	var y = field.hand_draw_pos.real_y;
 	var a = field.hand_draw_pos.real_a;
+	var desc_a = field.hand_draw_pos.real_desc_a;
+	var desc_h = field.hand_draw_pos.real_desc_h;
 	var side = (field.state == HUNT_STATE.DISCOVER ? Card.SIDE_DISCOVER : Card.SIDE_BATTLE);
 	var current = field.hand_is_current;
 	var now_a = g.globalAlpha;
@@ -26,6 +28,11 @@ Card.draw_hand = function (id, g, field)
 	var w = 2;
 	g.lineWidth = w;
 	g.strokeRect(x-w, y, UI.HAND.WIDTH+w, UI.HAND.HEIGHT);
+	if (current)
+	{
+		g.strokeStyle = COLOR.YELLOW;
+		g.strokeRect(x-w, y, UI.HAND.WIDTH+w, UI.HAND.HEIGHT);
+	}
 	// text
 	g.textAlign = "left";
 	g.textBaseline = "middle";
@@ -54,6 +61,8 @@ Card.draw_hand = function (id, g, field)
 		// desc
 		if (current)
 		{
+			var temp_a = g.globalAlpha;
+			g.globalAlpha *= desc_a;
 			// desc back
 			text_x = x;
 			text_y = y + UI.HAND.HEIGHT;
@@ -63,9 +72,9 @@ Card.draw_hand = function (id, g, field)
 			style.addColorStop(1, COLOR.DARK_RED2);
 			//style.addColorStop(1, COLOR.BLACK);
 			g.fillStyle = style;
-			g.fillRect(text_x-w, text_y, UI.HAND.WIDTH+w, h);
+			g.fillRect(text_x-w, text_y, UI.HAND.WIDTH+w, desc_h);
 			g.lineWidth = w;
-			g.strokeRect(text_x-w, text_y, UI.HAND.WIDTH+w, h);
+			g.strokeRect(text_x-w, text_y, UI.HAND.WIDTH+w, desc_h);
 			// desc
 			g.fillStyle = UI.HAND.TEXT_COLOR;
 			g.font = UI.HAND.TEXT_FONT;
@@ -73,6 +82,7 @@ Card.draw_hand = function (id, g, field)
 			text_y = y + UI.HAND.HEIGHT + 8;
 			g.textBaseline = "top";
 			g.fillText(c.desc, text_x, text_y);
+			g.globalAlpha = temp_a;
 		}
 	}
 	else
