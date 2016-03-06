@@ -145,14 +145,15 @@ function HuntScene()
 		var modify = -Math.floor((self.hand.length-1)/2);
 		var x_mod = 16;
 		var x_accr = .7;
-		var y_mod = -10;
-		var y_add = 4;
-		var y_add2 = 1;
+		var y_mod = modify*4;
+		var y_add = 3;
+		var y_add2 = 2;
 		self.hand_x = 0;
 		self.hand_y = 16 + (4+modify) * UI.HAND.HEIGHT;
 		for (var i=0; i<self.hand.length; i++, modify++)
 		{
 			var idx = (self.hand_current + modify + self.hand.length) % self.hand.length;
+			self.hand_scale = 1 - Math.abs(modify)*.04;
 			self.hand_draw_pos = self.hand_pos[idx];
 			self.hand_draw_pos.x = self.hand_x;
 			self.hand_draw_pos.y = self.hand_y;
@@ -175,7 +176,7 @@ function HuntScene()
 				self.hand_y += UI.HAND.MAIN_HEIGHT;
 				x_mod = -x_mod;
 				x_accr = 1/x_accr;
-				y_add = -y_add;
+				y_add = -y_add + y_add2;
 			}
 			else
 			{
@@ -184,9 +185,9 @@ function HuntScene()
 				self.hand_y += UI.HAND.HEIGHT;
 				y_mod += y_add;
 				y_add += y_add2;
-				if (y_mod < -8)
+				if (y_mod < -16)
 				{
-					y_mod = -8;
+					y_mod = -16;
 				}
 			}
 			self.hand_y += y_mod;
