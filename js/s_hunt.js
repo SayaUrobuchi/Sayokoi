@@ -149,12 +149,12 @@ function HuntScene()
 			var diff = (self.hand_draw_pos.y-self.hand_draw_pos.real_y);
 			if (diff > 400)
 			{
-				self.hand_draw_pos.real_y = self.hand_draw_pos.y - 60;
+				self.hand_draw_pos.real_y = self.hand_draw_pos.y + 60;
 				self.hand_draw_pos.real_x = -UI.HAND.WIDTH;
 			}
 			if (diff < -400)
 			{
-				self.hand_draw_pos.real_y = self.hand_draw_pos.y + 60;
+				self.hand_draw_pos.real_y = self.hand_draw_pos.y - 60;
 				self.hand_draw_pos.real_x = -UI.HAND.WIDTH;
 			}
 			self.hand_pos_update(self.hand_pos[idx]);
@@ -191,9 +191,10 @@ function HuntScene()
 	
 	self.hand_pos_update = function (data)
 	{
-		data.real_x = lerp(data.x, data.real_x, 0.5);
-		data.real_y = lerp(data.y, data.real_y, 0.5);
-		data.real_a = lerp(data.a, data.real_a, 0.5);
+		var spd = .3;
+		data.real_x = lerp(data.real_x, data.x, spd);
+		data.real_y = lerp(data.real_y, data.y, spd);
+		data.real_a = lerp(data.real_a, data.a, spd);
 	}
 	
 	self.hand_push = function (card)
