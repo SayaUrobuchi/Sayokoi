@@ -198,11 +198,47 @@ function HuntScene()
 	
 	self.update_attr = function (g)
 	{
+		// HP
+		var w = 3;
+		g.lineWidth = w;
+		var grad;
+		// border
+		var x = UI.HP_BAR.X;
+		var y = UI.SCREEN.HEIGHT - UI.HP_BAR.HEIGHT - w;
+		var h = UI.HP_BAR.HEIGHT;
+		var r = h/2;
+		var rate = 1;
+		var ex = UI.SCREEN.WIDTH-r-x-w;
+		g.translate(x, y);
+		{
+			g.beginPath();
+			g.moveTo(r, 0);
+			g.lineTo(ex, 0);
+			g.arc(ex, r, r, 1.5*Math.PI, 0.5*Math.PI);
+			g.moveTo(ex, h);
+			g.lineTo(r, h);
+			g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
+			g.moveTo(ex*.5, 0);
+			rate = .5;
+			g.scale(.5, 1);
+			{
+				grad = g.createLinearGradient(0, 0, 0, h);
+				grad.addColorStop(0, COLOR.BRIGHT_BLUE);
+				grad.addColorStop(1, COLOR.BLUE);
+				g.fillStyle = grad;
+				g.fill();
+				g.strokeStyle = "#663300";
+				g.stroke();
+			}
+			g.scale(1/rate, 1);
+		}
+		g.translate(-x, -y);
+		// MP
 	}
 	
 	self.hand_pos_update = function (data)
 	{
-		var spd = .3;
+		var spd = .2;
 		var diff = Math.abs(data.real_y-data.y);
 		if (diff > UI.HAND.HEIGHT-10)
 		{
