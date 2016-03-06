@@ -56,11 +56,15 @@ function HuntScene()
 			997, 
 		];
 		
-		self.max_hp = 100;
-		self.hp = self.max_hp;
-		self.max_mp = 40;
+		self.mhp = 100;
+		self.hp = self.mhp;
+		self.mmp = 40;
 		self.mp = 5;
 		self.mp_recover = 15;
+		self.hp_draw_back = 0;
+		self.hp_draw_front = 0;
+		self.mp_draw_back = 0;
+		self.mp_draw_front = 0;
 		
 		self.draw_card(self.hand_limit);
 		
@@ -199,41 +203,127 @@ function HuntScene()
 	self.update_attr = function (g)
 	{
 		// HP
-		var w = 3;
-		g.lineWidth = w;
-		var grad;
-		// border
-		var x = UI.HP_BAR.X;
-		var y = UI.SCREEN.HEIGHT - UI.HP_BAR.HEIGHT - w;
-		var h = UI.HP_BAR.HEIGHT;
-		var r = h/2;
-		var rate = 1;
-		var ex = UI.SCREEN.WIDTH-r-x-w;
-		g.translate(x, y);
 		{
-			g.beginPath();
-			g.moveTo(r, 0);
-			g.lineTo(ex, 0);
-			g.arc(ex, r, r, 1.5*Math.PI, 0.5*Math.PI);
-			g.moveTo(ex, h);
-			g.lineTo(r, h);
-			g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
-			g.moveTo(ex*.5, 0);
-			rate = .5;
-			g.scale(.5, 1);
+			self.hp_rate = self.hp / self.mhp;
+			if (self.hp_draw_back < self.hp_rate)
 			{
-				grad = g.createLinearGradient(0, 0, 0, h);
-				grad.addColorStop(0, COLOR.BRIGHT_BLUE);
-				grad.addColorStop(1, COLOR.BLUE);
-				g.fillStyle = grad;
-				g.fill();
+				self.hp_draw_back = lerp(self.hp_draw_back, self.hp_rate, .5);
+			}
+			else
+			{
+				self.hp_draw_back = Math.max(self.hp_draw_back-.005, self.hp_rate);
+			}
+			if (self.hp_draw_front > self.hp_rate)
+			{
+				self.hp_draw_front = lerp(self.hp_draw_front, self.hp_rate, .5);
+			}
+			else
+			{
+				self.hp_draw_front = Math.min(self.hp_draw_front+.005, self.hp_rate);
+			}
+			// draw
+			var w = 3;
+			g.lineWidth = w;
+			var grad;
+			// border
+			var x = UI.HP_BAR.X;
+			var y = UI.SCREEN.HEIGHT - (UI.HP_BAR.HEIGHT + w) * 2;
+			var h = UI.HP_BAR.HEIGHT;
+			var r = h/2;
+			var rate = 1;
+			var ex = UI.SCREEN.WIDTH-r-x-w;
+			var w = ex+r;
+			g.translate(x, y);
+			{
+				g.beginPath();
+				g.moveTo(r, 0);
+				g.lineTo(ex, 0);
+				g.arc(ex, r, r, 1.5*Math.PI, 0.5*Math.PI);
+				g.moveTo(ex, h);
+				g.lineTo(r, h);
+				g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
 				g.strokeStyle = "#663300";
 				g.stroke();
+				g.save();
+				g.clip();
+				{
+					
+					grad = g.createLinearGradient(0, 0, 0, h);
+					grad.addColorStop(0, COLOR.RED);
+					grad.addColorStop(1, COLOR.DARK_RED2);
+					g.fillStyle = grad;
+					g.fillRect(0, 0, w*self.hp_draw_back, h);
+					grad = g.createLinearGradient(0, 0, 0, h);
+					grad.addColorStop(0, COLOR.DARK_GREEN);
+					grad.addColorStop(1, COLOR.DARK_GREEN2);
+					g.fillStyle = grad;
+					g.fillRect(0, 0, w*self.hp_draw_front, h);
+				}
+				g.restore();
 			}
-			g.scale(1/rate, 1);
+			g.translate(-x, -y);
 		}
-		g.translate(-x, -y);
 		// MP
+		{
+			self.mp_rate = self.mp / self.mmp;
+			if (self.mp_draw_back < self.mp_rate)
+			{
+				self.mp_draw_back = lerp(self.mp_draw_back, self.mp_rate, .5);
+			}
+			else
+			{
+				self.mp_draw_back = Math.max(self.mp_draw_back-.005, self.mp_rate);
+			}
+			if (self.mp_draw_front > self.mp_rate)
+			{
+				self.mp_draw_front = lerp(self.mp_draw_front, self.mp_rate, .5);
+			}
+			else
+			{
+				self.mp_draw_front = Math.min(self.mp_draw_front+.005, self.mp_rate);
+			}
+			// draw
+			var w = 3;
+			g.lineWidth = w;
+			var grad;
+			// border
+			var x = UI.HP_BAR.X;
+			var y = UI.SCREEN.HEIGHT - UI.HP_BAR.HEIGHT - w;
+			var h = UI.HP_BAR.HEIGHT;
+			var r = h/2;
+			var rate = 1;
+			var ex = UI.SCREEN.WIDTH-r-x-w;
+			var w = ex+r;
+			g.translate(x, y);
+			{
+				g.beginPath();
+				g.moveTo(r, 0);
+				g.lineTo(ex, 0);
+				g.arc(ex, r, r, 1.5*Math.PI, 0.5*Math.PI);
+				g.moveTo(ex, h);
+				g.lineTo(r, h);
+				g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
+				g.strokeStyle = "#663300";
+				g.stroke();
+				g.save();
+				g.clip();
+				{
+					
+					grad = g.createLinearGradient(0, 0, 0, h);
+					grad.addColorStop(0, COLOR.RED);
+					grad.addColorStop(1, COLOR.DARK_RED2);
+					g.fillStyle = grad;
+					g.fillRect(0, 0, w*self.mp_draw_back, h);
+					grad = g.createLinearGradient(0, 0, 0, h);
+					grad.addColorStop(0, COLOR.BRIGHT_BLUE);
+					grad.addColorStop(1, COLOR.BLUE);
+					g.fillStyle = grad;
+					g.fillRect(0, 0, w*self.mp_draw_front, h);
+				}
+				g.restore();
+			}
+			g.translate(-x, -y);
+		}
 	}
 	
 	self.hand_pos_update = function (data)
@@ -329,6 +419,14 @@ function HuntScene()
 		if (res != INPUT.UNKNOWN)
 		{
 			self.input[res] = true;
+			if (res == INPUT.DECIDE)
+			{
+				self.hp -= 8;
+			}
+			else if (res == INPUT.CANCEL)
+			{
+				self.hp += 8;
+			}
 			return false;
 		}
 		return true;
