@@ -116,6 +116,11 @@ function cos_f(st, ed, now)
 	return st + (ed-st)*(1-Math.cos(now*deg(90)));
 }
 
+function swing_f(st, ed, now)
+{
+	return (-Math.cos(now*Math.PI)/2+.5)*(ed-st)+st;
+}
+
 function lerp(x, y, val)
 {
 	return x + (y-x) * val;

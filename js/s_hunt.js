@@ -59,12 +59,15 @@ function HuntScene()
 		self.mhp = 100;
 		self.hp = self.mhp;
 		self.mmp = 40;
-		self.mp = 5;
+		self.mp = 20;
 		self.mp_recover = 15;
 		self.hp_draw_back = 0;
 		self.hp_draw_front = 0;
 		self.mp_draw_back = 0;
 		self.mp_draw_front = 0;
+		self.hp_prev = 0;
+		self.hp_draw_prev = 0;
+		self.mp_prev = 0;
 		
 		self.draw_card(self.hand_limit);
 		
@@ -181,6 +184,7 @@ function HuntScene()
 				x_mod = -x_mod;
 				x_accr = 1/x_accr;
 				y_add = -y_add + y_add2;
+				self.mp_prev = -CARD[self.hand[idx]].cost;
 			}
 			else
 			{
@@ -204,22 +208,36 @@ function HuntScene()
 	{
 		// HP
 		{
-			self.hp_rate = self.hp / self.mhp;
-			if (self.hp_draw_back < self.hp_rate)
+			var new_rate = self.hp / self.mhp;
+			if (new_rate != self.hp_rate)
 			{
-				self.hp_draw_back = lerp(self.hp_draw_back, self.hp_rate, .5);
+				self.hp_rate = new_rate;
+				self.hp_draw_back_timer = 0;
+				self.hp_draw_back_orig = self.hp_draw_back;
+				self.hp_draw_front_timer = 0;
+				self.hp_draw_front_orig = self.hp_draw_front;
+			}
+			if (self.hp_draw_back_orig < self.hp_rate)
+			{
+				self.hp_draw_back_timer = Math.min(self.hp_draw_back_timer+0.15, 1);
+				self.hp_draw_back = swing_f(self.hp_draw_back_orig, self.hp_rate, self.hp_draw_back_timer);
 			}
 			else
 			{
-				self.hp_draw_back = Math.max(self.hp_draw_back-.005, self.hp_rate);
+				self.hp_draw_back_timer = Math.min(self.hp_draw_back_timer+0.025, 1);
+				self.hp_draw_back = swing_f(self.hp_draw_back_orig, self.hp_rate, self.hp_draw_back_timer);
+				self.hp_draw_value = Math.round(self.mhp * self.hp_draw_back);
 			}
-			if (self.hp_draw_front > self.hp_rate)
+			if (self.hp_draw_front < self.hp_rate)
 			{
-				self.hp_draw_front = lerp(self.hp_draw_front, self.hp_rate, .5);
+				self.hp_draw_front_timer = Math.min(self.hp_draw_front_timer+0.025, 1);
+				self.hp_draw_front = swing_f(self.hp_draw_front_orig, self.hp_rate, self.hp_draw_front_timer);
+				self.hp_draw_value = Math.round(self.mhp * self.hp_draw_front);
 			}
 			else
 			{
-				self.hp_draw_front = Math.min(self.hp_draw_front+.005, self.hp_rate);
+				self.hp_draw_front_timer = Math.min(self.hp_draw_front_timer+0.15, 1);
+				self.hp_draw_front = swing_f(self.hp_draw_front_orig, self.hp_rate, self.hp_draw_front_timer);
 			}
 			// draw
 			var w = 3;
@@ -242,12 +260,9 @@ function HuntScene()
 				g.moveTo(ex, h);
 				g.lineTo(r, h);
 				g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
-				g.strokeStyle = "#663300";
-				g.stroke();
 				g.save();
 				g.clip();
 				{
-					
 					grad = g.createLinearGradient(0, 0, 0, h);
 					grad.addColorStop(0, COLOR.RED);
 					grad.addColorStop(1, COLOR.DARK_RED2);
@@ -260,36 +275,68 @@ function HuntScene()
 					g.fillRect(0, 0, w*self.hp_draw_front, h);
 				}
 				g.restore();
+				g.strokeStyle = "#663300";
+				g.stroke();
+				// text
+				g.textBaseline = "middle";
+				g.textAlign = "left";
+				g.font = UI.HP_BAR.TEXT_FONT;
+				g.fillStyle = COLOR.TEXT;
+				g.fillText(UI.HP_BAR.TEXT, -48, r);
+				g.textAlign = "right";
+				g.font = UI.HP_BAR.VALUE_FONT;
+				g.fillStyle = COLOR.TEXT;
+				g.fillText(self.hp_draw_value, 84, r);
+				g.textAlign = "right";
+				g.font = UI.HP_BAR.VALUE_FONT;
+				g.fillText(UI.HP_BAR.SEP_TEXT, 96, r);
+				g.textAlign = "left";
+				g.font = UI.HP_BAR.VALUE_FONT;
+				g.fillText(self.mhp, 108, r);
 			}
 			g.translate(-x, -y);
 		}
 		// MP
 		{
-			self.mp_rate = self.mp / self.mmp;
-			if (self.mp_draw_back < self.mp_rate)
+			var new_rate = self.mp / self.mmp;
+			if (new_rate != self.mp_rate)
 			{
-				self.mp_draw_back = lerp(self.mp_draw_back, self.mp_rate, .5);
+				self.mp_rate = new_rate;
+				self.mp_draw_back_timer = 0;
+				self.mp_draw_back_orig = self.mp_draw_back;
+				self.mp_draw_front_timer = 0;
+				self.mp_draw_front_orig = self.mp_draw_front;
+			}
+			if (self.mp_draw_back_orig < self.mp_rate)
+			{
+				self.mp_draw_back_timer = Math.min(self.mp_draw_back_timer+0.15, 1);
+				self.mp_draw_back = swing_f(self.mp_draw_back_orig, self.mp_rate, self.mp_draw_back_timer);
 			}
 			else
 			{
-				self.mp_draw_back = Math.max(self.mp_draw_back-.005, self.mp_rate);
+				self.mp_draw_back_timer = Math.min(self.mp_draw_back_timer+0.025, 1);
+				self.mp_draw_back = swing_f(self.mp_draw_back_orig, self.mp_rate, self.mp_draw_back_timer);
+				self.mp_draw_value = Math.round(self.mmp * self.mp_draw_back);
 			}
-			if (self.mp_draw_front > self.mp_rate)
+			if (self.mp_draw_front < self.mp_rate)
 			{
-				self.mp_draw_front = lerp(self.mp_draw_front, self.mp_rate, .5);
+				self.mp_draw_front_timer = Math.min(self.mp_draw_front_timer+0.025, 1);
+				self.mp_draw_front = swing_f(self.mp_draw_front_orig, self.mp_rate, self.mp_draw_front_timer);
+				self.mp_draw_value = Math.round(self.mmp * self.mp_draw_front);
 			}
 			else
 			{
-				self.mp_draw_front = Math.min(self.mp_draw_front+.005, self.mp_rate);
+				self.mp_draw_front_timer = Math.min(self.mp_draw_front_timer+0.15, 1);
+				self.mp_draw_front = swing_f(self.mp_draw_front_orig, self.mp_rate, self.mp_draw_front_timer);
 			}
 			// draw
 			var w = 3;
 			g.lineWidth = w;
 			var grad;
 			// border
-			var x = UI.HP_BAR.X;
-			var y = UI.SCREEN.HEIGHT - UI.HP_BAR.HEIGHT - w;
-			var h = UI.HP_BAR.HEIGHT;
+			var x = UI.MP_BAR.X;
+			var y = UI.SCREEN.HEIGHT - (UI.MP_BAR.HEIGHT + w);
+			var h = UI.MP_BAR.HEIGHT;
 			var r = h/2;
 			var rate = 1;
 			var ex = UI.SCREEN.WIDTH-r-x-w;
@@ -303,12 +350,9 @@ function HuntScene()
 				g.moveTo(ex, h);
 				g.lineTo(r, h);
 				g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
-				g.strokeStyle = "#663300";
-				g.stroke();
 				g.save();
 				g.clip();
 				{
-					
 					grad = g.createLinearGradient(0, 0, 0, h);
 					grad.addColorStop(0, COLOR.RED);
 					grad.addColorStop(1, COLOR.DARK_RED2);
@@ -319,8 +363,44 @@ function HuntScene()
 					grad.addColorStop(1, COLOR.BLUE);
 					g.fillStyle = grad;
 					g.fillRect(0, 0, w*self.mp_draw_front, h);
+					if (self.mp_prev)
+					{
+						var prev_rate = (self.mp_prev) / self.mmp;
+						g.fillStyle = UI.MP_BAR.PREVIEW_COLOR;
+						g.fillRect(w*self.mp_draw_front, 0, w*prev_rate, h);
+					}
 				}
 				g.restore();
+				g.strokeStyle = "#663300";
+				g.stroke();
+				// text
+				g.textBaseline = "middle";
+				g.textAlign = "left";
+				g.font = UI.MP_BAR.TEXT_FONT;
+				g.fillStyle = COLOR.TEXT;
+				g.fillText(UI.MP_BAR.TEXT, -48, r);
+				g.textAlign = "right";
+				g.font = UI.MP_BAR.VALUE_FONT;
+				g.fillStyle = COLOR.TEXT;
+				g.fillText(self.mp_draw_value, 84, r);
+				g.textAlign = "right";
+				g.font = UI.MP_BAR.VALUE_FONT;
+				g.fillText(UI.MP_BAR.SEP_TEXT, 96, r);
+				g.textAlign = "left";
+				g.font = UI.MP_BAR.VALUE_FONT;
+				g.fillText(self.mmp, 108, r);
+				if (self.mp_prev)
+				{
+					g.textAlign = "left";
+					g.font = UI.MP_BAR.VALUE_FONT;
+					var mp_prev_string = "(";
+					if (self.mp_prev > 0)
+					{
+						mp_prev_string += "+";
+					}
+					mp_prev_string += self.mp_prev + ")";
+					g.fillText(mp_prev_string, 196, r);
+				}
 			}
 			g.translate(-x, -y);
 		}
@@ -426,6 +506,14 @@ function HuntScene()
 			else if (res == INPUT.CANCEL)
 			{
 				self.hp += 8;
+			}
+			else if (res == INPUT.MENU)
+			{
+				self.mp_prev++;
+			}
+			else if (res == INPUT.SUB)
+			{
+				self.mp_prev--;
 			}
 			return false;
 		}
