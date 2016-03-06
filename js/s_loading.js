@@ -32,8 +32,7 @@ function LoadingScene()
 			}
 			else
 			{
-				//self.state = LOADING_STATE.FINISH;
-				self.state = LOADING_STATE.WAITING;
+				self.state = LOADING_STATE.AFTER_LOAD;
 			}
 			break;
 		case LOADING_STATE.AFTER_LOAD:
@@ -41,8 +40,8 @@ function LoadingScene()
 			self.state = LOADING_STATE.FINISH;
 			break;
 		case LOADING_STATE.FINISH:
-			//self.deinit();
-			//scene.pop();
+			self.deinit();
+			scene.pop();
 			break;
 		}
 		self.update_background(g);

@@ -52,18 +52,43 @@ function deg(ang)
 	return ang*Math.PI/180;
 }
 
-function fdice(x, y, z)
+function dice(x, y, z)
 {
 	var res = 0;
 	while (x-- > 0)
 	{
-		res += Math.random()*y;
+		res += Math.floor(Math.random()*y) + 1;
 	}
 	if (is_ndef(z))
 	{
 		return res;
 	}
 	return res+z;
+}
+
+function random(p, q)
+{
+	if (is_ndef(q))
+	{
+		return Math.floor(Math.random()*p);
+	}
+	return Math.floor(Math.random()*(q-p))+p;
+}
+
+function frandom(p, q)
+{
+	if (is_ndef(q))
+	{
+		return Math.random()*p;
+	}
+	return Math.random()*(q-p)+p;
+}
+
+function num_format(n, width, z)
+{
+	z = z || '0';
+	n = n + '';
+	return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
 function linear_f(st, ed, now)
@@ -89,6 +114,11 @@ function sin_f(st, ed, now)
 function cos_f(st, ed, now)
 {
 	return st + (ed-st)*(1-Math.cos(now*deg(90)));
+}
+
+function lerp(x, y, val)
+{
+	return x + (y-x) * val;
 }
 
 function is_collide(p, q)

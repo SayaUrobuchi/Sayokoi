@@ -1,2 +1,6 @@
 
-
+@font-face {
+    font-family: NotoSans;
+	src: local('NotoSansMonoCJKtc-Regular'), url("NotoSansMonoCJKtc-Regular.otf") format("opentype");
+	font-weight: normal;
+}

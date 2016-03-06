@@ -80,7 +80,7 @@ function update()
 function main()
 {
 	init();
-	scene.push(LoadingScene());
+	scene.push(HuntScene());
 	setInterval(update, 16);
 }
 
