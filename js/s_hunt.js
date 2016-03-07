@@ -69,6 +69,10 @@ function HuntScene()
 		self.hp_draw_prev = 0;
 		self.mp_prev = 0;
 		
+		self.enemy_area_x = 500;
+		self.enemy_area_y = 450;
+		self.enemy_area_w = 760;
+		
 		self.draw_card(self.hand_limit);
 		
 		self.clear_input();
@@ -86,14 +90,16 @@ function HuntScene()
 		
 		if (self.state >= HUNT_STATE.READY)
 		{
-			// common
 			self.update_background(g);
+			
+			if (self.state == HUNT_STATE.EVENT)
+			{
+				self.update_enemy(g);
+				self.update_timeline(g);
+			}
+			
 			self.update_hand(g);
 			self.update_attr(g);
-			// discover
-			// battle
-			// gather
-			// talk
 		}
 	}
 	
@@ -134,6 +140,25 @@ function HuntScene()
 	}
 	
 	self.update_background = function (g)
+	{
+	}
+	
+	self.update_enemy = function (g)
+	{
+		g.strokeStyle = COLOR.GREEN;
+		g.lineWidth = 4;
+		g.strokeRect(self.enemy_area_x, self.enemy_area_y-400, self.enemy_area_w, 400);
+		for (var i=0; i<self.enemy.length; i++)
+		{
+			self.enemy[i].update(self);
+		}
+		for (var i=0; i<self.enemy.length; i++)
+		{
+			self.enemy[i].draw(self, g);
+		}
+	}
+	
+	self.update_timeline = function (g)
 	{
 	}
 	
@@ -461,8 +486,36 @@ function HuntScene()
 		return res;
 	}
 	
+	self.generate_enemy = function ()
+	{
+		self.enemy = [];
+		self.enemy.push(Enemy(ENEMY.TEST0));
+		self.enemy.push(Enemy(ENEMY.TEST1));
+		self.enemy.push(Enemy(ENEMY.TEST2));
+	}
+	
+	self.adjust_enemy_location = function ()
+	{
+		var total_w = 0;
+		for (var i=0; i<self.enemy.length; i++)
+		{
+			total_w += self.enemy[i].cw;
+		}
+		var remain_w = self.enemy_area_w - total_w;
+		var interval = remain_w / (self.enemy.length+1);
+		var x = self.enemy_area_x + interval;
+		for (var i=0; i<self.enemy.length; i++)
+		{
+			self.enemy[i].x = x + (self.enemy[i].cw)/2;
+			self.enemy[i].y = self.enemy_area_y;
+			x += self.enemy[i].cw + interval;
+		}
+	}
+	
 	self.event_setup = function ()
 	{
+		self.generate_enemy();
+		self.adjust_enemy_location();
 	}
 	
 	self.is_key = function(key)

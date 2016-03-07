@@ -1,14 +1,4 @@
 
-var MCHAR_SHOT_TEMPLATE = extend(SHOT_TEMPLATE, {
-	r: 4, 
-	dr: 6, 
-	spd: 16, 
-	color: COLOR.GRAY, 
-	out_color: COLOR.GREEN, 
-	target: GROUP.ENEMY, 
-	hit: SHOT.HIT_MC, 
-});
-
 function MainChara()
 {
 	var self = Chara();

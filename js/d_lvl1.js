@@ -4,7 +4,6 @@ var HUNTER_SHOT_TEMPLATE = extend(SHOT_TEMPLATE, {
 	dr: 6, 
 	color: COLOR.GRAY, 
 	out_color: COLOR.RED, 
-	target: GROUP.MIKATA, 
 });
 var HUNTER_FLOWER_SHOT_TEMPLATE = extend(HUNTER_SHOT_TEMPLATE, {
 	r: 4, 
@@ -12,7 +11,6 @@ var HUNTER_FLOWER_SHOT_TEMPLATE = extend(HUNTER_SHOT_TEMPLATE, {
 	img: image.SHOT_FLOWER, 
 	img_w: 16, 
 	img_h: 16, 
-	target: GROUP.MIKATA, 
 });
 var HUNTER_LETTER_SHOT_TEMPLATE = extend(HUNTER_SHOT_TEMPLATE, {
 	r: 4, 
@@ -20,7 +18,6 @@ var HUNTER_LETTER_SHOT_TEMPLATE = extend(HUNTER_SHOT_TEMPLATE, {
 	img: image.SHOT_LETTER, 
 	img_w: 32, 
 	img_h: 32, 
-	target: GROUP.MIKATA, 
 });
 var HUNTER_CHOCO_SHOT_TEMPLATE = extend(HUNTER_SHOT_TEMPLATE, {
 	r: 4, 
@@ -28,8 +25,9 @@ var HUNTER_CHOCO_SHOT_TEMPLATE = extend(HUNTER_SHOT_TEMPLATE, {
 	img: image.SHOT_CHOCOLATE, 
 	img_w: 32, 
 	img_h: 32, 
-	target: GROUP.MIKATA, 
 });
+
+var enemy = {};
 
 var hunter_spell0 = function(field, self)
 {

@@ -36,8 +36,6 @@ function after_preload()
 {
 }
 
-var enemy = {};
-
 var KEY = {
 	LEFT: 37, 
 	UP: 38, 
@@ -151,7 +149,7 @@ UI.HAND = {
 	COST_FONT: "28px bold "+UI.DEFAULT_ASCII_FONT, 
 	TEXT_FONT: "16px "+UI.DEFAULT_SMALL_FONT, 
 	TEXT_COLOR: COLOR.TEXT, 
-	USABLE_COLOR: COLOR.GREEN, 
+	USABLE_COLOR: COLOR.BRIGHT_BLUE, 
 	UNUSABLE_COLOR: COLOR.RED, 
 };
 
@@ -221,8 +219,7 @@ UI.MIKATA = {
 };
 
 UI.ENEMY = {
-	LVL_NAME_FONT: "20px "+UI.DEFAULT_FONT, 
-	HP_ANI_SPD: 0.01, 
+	NAME_FONT: "24px "+UI.DEFAULT_FONT, 
 };
 
 UI.TALK = {
