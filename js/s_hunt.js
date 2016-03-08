@@ -55,6 +55,9 @@ function HuntScene()
 			998, 
 			997, 
 		];
+		self.hand_temp = [];
+		self.timeline = [];
+		self.timeline_draw = [];
 		
 		self.mhp = 100;
 		self.hp = self.mhp;
@@ -74,6 +77,10 @@ function HuntScene()
 		self.enemy_area_w = 760;
 		
 		self.draw_card(self.hand_limit);
+		self.insert_action(Action(99998, GROUP.ENEMY));
+		self.insert_action(Action(99997, GROUP.ENEMY));
+		self.insert_action(Action(99999, GROUP.ENEMY));
+		self.insert_preview_action();
 		
 		self.clear_input();
 	}
@@ -160,81 +167,6 @@ function HuntScene()
 	
 	self.update_timeline = function (g)
 	{
-		self.timeline = [
-		{
-			name: "紅蓮劫火", 
-			spd: 17, 
-			group: GROUP.MATE, 
-		}, 
-		{
-			name: "靜止吧！『世界』", 
-			spd: 115, 
-			group: GROUP.MATE, 
-			is_preview: true, 
-		}, 
-		{
-			name: "恋符．恋色花火", 
-			spd: 9, 
-			group: GROUP.ENEMY, 
-		}, 
-		{
-			name: "一閃", 
-			spd: 6, 
-			group: GROUP.MATE, 
-		}, 
-		{
-			name: "斬", 
-			spd: -13, 
-			group: GROUP.ENEMY, 
-		}, 
-		];
-		var xx = 340;
-		var yy = 10;
-		var yint = 18;
-		var id = 0;
-		self.timeline_draw = [
-		{
-			a: 1, 
-			x: xx, 
-			y: yy+yint*id++, 
-			ta: 1, 
-			tx: xx, 
-			ty: yy+yint*id++, 
-		}, 
-		{
-			a: 1, 
-			x: xx, 
-			y: yy+yint*id++, 
-			ta: 1, 
-			tx: xx, 
-			ty: yy+yint*id++, 
-		}, 
-		{
-			a: 1, 
-			x: xx, 
-			y: yy+yint*id++, 
-			ta: 1, 
-			tx: xx, 
-			ty: yy+yint*id++, 
-		}, 
-		{
-			a: 1, 
-			x: xx, 
-			y: yy+yint*id++, 
-			ta: 1, 
-			tx: xx, 
-			ty: yy+yint*id++, 
-		}, 
-		{
-			a: 1, 
-			x: xx, 
-			y: yy+yint*id++, 
-			ta: 1, 
-			tx: xx, 
-			ty: yy+yint*id++, 
-		}, 
-		];
-		
 		for (var i=0; i<self.timeline.length; i++)
 		{
 			var t = self.timeline[i];
@@ -261,10 +193,14 @@ function HuntScene()
 				{
 					draw_color = COLOR.DARK_RED;
 				}
+				else
+				{
+					draw_color = COLOR.GRAY;
+				}
 				g.fillStyle = draw_color;
 				g.textAlign = "right";
 				g.textBaseline = "top";
-				g.fillText(t.spd+":", td.x+36, td.y);
+				g.fillText(t.speed+":", td.x+36, td.y);
 				g.textAlign = "left";
 				g.fillText(t.name, td.x+44, td.y);
 				var text_w = g.measureText(t.name).width;
@@ -289,11 +225,29 @@ function HuntScene()
 		{
 			self.hand_current = (self.hand_current+1) % self.hand.length;
 			self.key_delay(INPUT.DOWN, 10, 30);
+			self.remove_preview_action();
+			self.insert_preview_action();
 		}
 		if (self.is_key(INPUT.UP))
 		{
 			self.hand_current = (self.hand_current-1+self.hand.length) % self.hand.length;
 			self.key_delay(INPUT.UP, 10, 30);
+			self.remove_preview_action();
+			self.insert_preview_action();
+		}
+		if (self.is_key(INPUT.DECIDE))
+		{
+			self.remove_preview_action();
+			self.hand_use();
+			self.insert_preview_action();
+			self.key_delay(INPUT.DECIDE, Infinity);
+		}
+		if (self.is_key(INPUT.CANCEL))
+		{
+			self.remove_preview_action();
+			self.hand_rollback();
+			self.insert_preview_action();
+			self.key_delay(INPUT.CANCEL, Infinity);
 		}
 		var modify = -Math.floor((self.hand.length-1)/2);
 		var x_mod = 16;
@@ -552,6 +506,85 @@ function HuntScene()
 		}
 	}
 	
+	self.insert_preview_action = function ()
+	{
+		var action = Action(self.hand[self.hand_current], GROUP.MATE, true);
+		self.insert_action(action);
+	}
+	
+	self.remove_preview_action = function ()
+	{
+		var i, j;
+		for (i=0, j=0; i<self.timeline.length; i++)
+		{
+			if (!self.timeline[i].is_preview)
+			{
+				self.timeline[j] = self.timeline[i];
+				self.timeline_draw[j] = self.timeline_draw[i];
+				j++;
+			}
+		}
+		if (i != j)
+		{
+			for (; i>j; i--)
+			{
+				self.timeline.pop();
+				self.timeline_draw.pop();
+			}
+			self.adjust_action();
+		}
+	}
+	
+	self.insert_action = function (action)
+	{
+		var idx = self.timeline.length-1;
+		while (idx >= 0)
+		{
+			if (action.compare_to(self.timeline[idx]) <= 0)
+			{
+				break;
+			}
+			idx--;
+		}
+		++idx;
+		self.timeline.splice(idx, 0, action);
+		self.timeline_draw.splice(idx, 0, {
+			a: 0, 
+			x: 600, 
+			y: 0, 
+		});
+		self.adjust_action();
+	}
+	
+	self.cancel_action = function (id)
+	{
+		for (var i=self.timeline.length-1; i>=0; i--)
+		{
+			if (self.timeline[i].card_id == id)
+			{
+				self.timeline.splice(i, 1);
+				self.timeline_draw.splice(i, 1);
+				self.adjust_action();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	self.adjust_action = function ()
+	{
+		var xx = 340;
+		var yy = 10;
+		var yint = 36;
+		for (var i=0; i<self.timeline.length; i++)
+		{
+			var td = self.timeline_draw[i];
+			td.tx = xx;
+			td.ty = yy + yint*i;
+			td.ta = 1;
+		}
+	}
+	
 	self.hand_pos_update = function (data)
 	{
 		var spd = .2;
@@ -573,8 +606,9 @@ function HuntScene()
 	
 	self.hand_push = function (card)
 	{
-		self.hand.splice(self.hand.current, 0, card);
-		self.hand_pos.splice(self.hand.current, 0, {
+		var location = (self.hand.length > 0 ? (self.hand_current+1) % self.hand.length : 0);
+		self.hand.splice(location, 0, card);
+		self.hand_pos.splice(location, 0, {
 			x: 0, 
 			y: 12 + UI.HAND.HEIGHT*4, 
 			a: 1, 
@@ -584,6 +618,38 @@ function HuntScene()
 			real_desc_a: 0, 
 			real_desc_h: 0, 
 		});
+		self.hand_current = location;
+	}
+	
+	self.hand_pop = function ()
+	{
+		var res = self.hand.splice(self.hand_current, 1)[0];
+		self.hand_pos.splice(self.hand_current, 1);
+		self.hand_current %= self.hand.length;
+		return res;
+	}
+	
+	self.hand_use = function ()
+	{
+		var card = self.hand[self.hand_current];
+		if (Card.is_usable(card, self))
+		{
+			Card.cost_mp(card, self);
+			self.hand_pop();
+			self.hand_temp.push(card);
+			self.insert_action(Action(card, GROUP.MATE));
+		}
+	}
+	
+	self.hand_rollback = function ()
+	{
+		if (self.hand_temp.length > 0)
+		{
+			var card = self.hand_temp.pop();
+			Card.recover_cost_mp(card, self);
+			self.hand_push(card);
+			self.cancel_action(card);
+		}
 	}
 	
 	self.draw_card = function (num)
@@ -673,7 +739,7 @@ function HuntScene()
 		if (res != INPUT.UNKNOWN)
 		{
 			self.input[res] = true;
-			if (res == INPUT.DECIDE)
+			/*if (res == INPUT.DECIDE)
 			{
 				self.hp -= 8;
 			}
@@ -688,7 +754,7 @@ function HuntScene()
 			else if (res == INPUT.SUB)
 			{
 				self.mp_prev--;
-			}
+			}*/
 			return false;
 		}
 		return true;

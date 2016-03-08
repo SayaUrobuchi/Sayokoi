@@ -95,3 +95,18 @@ Card.draw_hand = function (id, g, field)
 	g.scale(1/scale, 1/scale);
 	g.translate(-x, -y);
 }
+
+Card.is_usable = function (id, field)
+{
+	return field.mp >= CARD[id].cost;
+}
+
+Card.cost_mp = function (id, field)
+{
+	field.mp -= CARD[id].cost;
+}
+
+Card.recover_cost_mp = function (id, field)
+{
+	field.mp += CARD[id].cost;
+}
