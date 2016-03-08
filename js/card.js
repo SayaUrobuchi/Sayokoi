@@ -19,6 +19,7 @@ Card.draw_hand = function (idx, g, field)
 	var side = (field.state == HUNT_STATE.DISCOVER ? Card.SIDE_DISCOVER : Card.SIDE_BATTLE);
 	var current = idx == field.hand_current;
 	var now_a = g.globalAlpha;
+	g.save();
 	g.globalAlpha *= a;
 	g.translate(x, y);
 	g.scale(scale, scale);
@@ -93,9 +94,7 @@ Card.draw_hand = function (idx, g, field)
 	else
 	{
 	}
-	g.globalAlpha = now_a;
-	g.scale(1/scale, 1/scale);
-	g.translate(-x, -y);
+	g.restore();
 }
 
 Card.is_usable = function (id, field)
