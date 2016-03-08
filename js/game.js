@@ -25,6 +25,12 @@ var IMAGE = {
 	SHOT_FLOWER: "p/flower_shot.png", 
 	SHOT_LETTER: "p/letter_shot.png", 
 	SHOT_CHOCOLATE: "p/chocolate_shot.png", 
+	
+	TACHIE_YOYO_NORMAL: "p/tachie_yoyo_normal.png", 
+	TACHIE_SAKO_NORMAL: "p/tachie_sako_normal.png", 
+	
+	BG_FOREST_TWILIGHT: "p/bg_forest_yu.jpg", 
+	
 	ENEMY_TEST0: "p/184_vanp_tinasi.png", 
 	ENEMY_TEST1: "p/198_doragon.png", 
 	ENEMY_TEST2: "p/251_kikimora.png", 
@@ -104,15 +110,18 @@ var COLOR = {
 	GRAY: "#CCCCCC", 
 	BLACK: "#000", 
 	RED: "#FF0000", 
+	DARK_RED: "#AA0000", 
+	DARK_RED2: "#440000", 
+	PINK: "#FF6699", 
 	GREEN: "#00FF00", 
 	DARK_GREEN: "#00CC00", 
 	DARK_GREEN2: "#009900", 
+	DARK_GREEN3: "#004D00", 
 	BLUE: "#0000FF", 
 	BRIGHT_BLUE: "#00CCFF", 
-	DARK_RED: "#AA0000", 
-	DARK_RED2: "#440000", 
 	PURPLE: "#FF00FF", 
 	YELLOW: "#FFFF66", 
+	BRIGHT_COFFEE: "#996633", 
 	TRANSPARENT: rgba(0, 0, 0, 0), 
 };
 
@@ -130,6 +139,10 @@ var UI = {
 UI.SCREEN = {
 	WIDTH: 1280, 
 	HEIGHT: 720, 
+};
+
+UI.GENERAL = {
+	SUB_TITLE_FONT: "28px "+UI.DEFAULT_FONT, 
 };
 
 // ---- loading

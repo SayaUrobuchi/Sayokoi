@@ -2,7 +2,7 @@
 var ENEMY_TEMPLATE = {
 	w: 250, 
 	cw: 0, 
-	sy: 0, 
+	sy: 20, 
 	draw: ENEMY_FUNC.DRAW_NORMAL, 
 	die: ENEMY_FUNC.DIE_DISAPPEAR, 
 };
@@ -20,7 +20,7 @@ ENEMY[ENEMY.TEST1 = 998] = extend(ENEMY_TEMPLATE, {
 	img: image.ENEMY_TEST1, 
 	w: 340, 
 	cw: -90, 
-	sy: -30, 
+	sy: 10, 
 	hp: 500, 
 	atk: 120, 
 });

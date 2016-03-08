@@ -60,7 +60,7 @@ function Enemy(id)
 		g.textAlign = "center";
 		g.textBaseline = "top";
 		g.fillStyle = COLOR.TEXT;
-		g.fillText(self.data.name, self.x, self.y+24);
+		g.fillText(self.data.name, self.x, self.y+8);
 		g.strokeStyle = COLOR.RED;
 		g.lineWidth = 0.2;
 		//g.strokeText(self.data.name, self.x, self.y+24);

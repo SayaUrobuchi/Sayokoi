@@ -72,9 +72,14 @@ function HuntScene()
 		self.hp_draw_prev = 0;
 		self.mp_prev = 0;
 		
+		self.tachie = image.TACHIE_YOYO_NORMAL;
+		self.tachie2 = image.TACHIE_SAKO_NORMAL;
+		
 		self.enemy_area_x = 500;
 		self.enemy_area_y = 450;
 		self.enemy_area_w = 760;
+		
+		self.set_background(image.BG_FOREST_TWILIGHT);
 		
 		self.draw_card(self.hand_limit);
 		self.insert_action(Action(99998, GROUP.ENEMY));
@@ -98,6 +103,8 @@ function HuntScene()
 		if (self.state >= HUNT_STATE.READY)
 		{
 			self.update_background(g);
+			self.update_tachie(g);
+			self.update_msg(g);
 			
 			if (self.state == HUNT_STATE.EVENT)
 			{
@@ -106,7 +113,7 @@ function HuntScene()
 			}
 			
 			self.update_hand(g);
-			self.update_attr(g);
+			self.update_hpmp(g);
 		}
 	}
 	
@@ -148,6 +155,119 @@ function HuntScene()
 	
 	self.update_background = function (g)
 	{
+		// diagos
+		{
+			var x0 = 640;
+			var x1 = 200;
+			var x2 = 920;
+			var h = UI.SCREEN.HEIGHT;
+			var w = UI.SCREEN.WIDTH;
+			g.beginPath();
+			g.moveTo(0, 0);
+			g.lineTo(x0, 0);
+			g.lineTo(x1, h);
+			g.lineTo(0, h);
+			g.closePath();
+			g.fillStyle = "#336699";
+			g.fill();
+			g.beginPath();
+			g.moveTo(w, h);
+			g.lineTo(x2, h);
+			g.lineTo(x2+(x0-x1), 0);
+			g.lineTo(w, 0);
+			g.closePath();
+			g.fill();
+		}
+		// bottom back
+		{
+			var y = UI.SCREEN.HEIGHT-100;
+			g.fillStyle = COLOR.BRIGHT_COFFEE;
+			g.fillRect(0, y, UI.SCREEN.WIDTH, UI.SCREEN.HEIGHT);
+		}
+		// enemy area battle bg
+		{
+			var w = self.enemy_area_w;
+			var h = 400;
+			var x = self.enemy_area_x + self.enemy_area_w/2 - w/2;
+			var y = self.enemy_area_y - h;
+			var sh = Math.min(h * self.background.width / w, self.background.height);
+			var sw = w * sh / h;
+			var sx = (self.background.width-sw) / 2;
+			var sy = self.background.height-sh;
+			g.drawImage(self.background, sx, sy, sw, sh, x, y, w, h);
+		}
+		// current state text
+		{
+			var y = 40;
+			var x = UI.SCREEN.WIDTH;
+			var x2 = x-200;
+			var c = COLOR.RED;
+			g.fillStyle = c;
+			g.font = UI.GENERAL.SUB_TITLE_FONT;
+			g.textAlign = "right";
+			g.textBaseline = "top";
+			g.fillText("戰鬥階段", x-16, 0);
+			g.lineWidth = 4;
+			g.beginPath();
+			g.moveTo(x, y);
+			g.lineTo(x2, y);
+			var grad = g.createLinearGradient(x, 0, x2, 0);
+			grad.addColorStop(0, c);
+			grad.addColorStop(.4, c);
+			grad.addColorStop(1, COLOR.TRANSPARENT);
+			g.strokeStyle = grad;
+			g.stroke();
+		}
+	}
+	
+	self.update_tachie = function (g)
+	{
+		var w = self.tachie.width;
+		var h = self.tachie.height;
+		var x = 100;
+		var y = UI.SCREEN.HEIGHT-180;
+		g.drawImage(self.tachie, x, y, w, h);
+		w = self.tachie2.width;
+		h = self.tachie2.height;
+		x = -100;
+		y = UI.SCREEN.HEIGHT-200;
+		g.drawImage(self.tachie2, x, y, w, h);
+	}
+	
+	self.update_msg = function (g)
+	{
+		self.msg = "臣亮言：先帝創業未半，而中道崩殂。今天下三分，益州疲弊，此誠危急存亡之秋也。然侍衛之臣，不懈於內；忠志之士，忘身於外";
+		var x = 400;
+		var y = UI.SCREEN.HEIGHT-220;
+		var r = 24;
+		var x2 = UI.SCREEN.WIDTH - 16;
+		var y2 = y + 128;
+		var dy = y2-r-12;
+		var dyo = dy+16;
+		var dy2 = y+r+28;
+		var dx = x-40;
+		g.fillStyle = COLOR.DARK_RED2;
+		g.beginPath();
+		g.moveTo(x+r, y);
+		g.lineTo(x2-r, y);
+		g.arcTo(x2, y, x2, y+r, r);
+		g.lineTo(x2, y2-r);
+		g.arcTo(x2, y2, x2-r, y2, r);
+		g.lineTo(x+r, y2);
+		g.arcTo(x, y2, x, y2-r, r);
+		g.lineTo(x, dy);
+		g.lineTo(dx, dyo);
+		g.lineTo(x, dy2);
+		g.lineTo(x, y+r);
+		g.arcTo(x, y, x+r, y, r);
+		g.fill();
+		g.strokeStyle = COLOR.DARK_RED;
+		g.stroke();
+		g.fillStyle = COLOR.TEXT;
+		g.font = UI.GENERAL.SUB_TITLE_FONT;
+		g.textAlign = "left";
+		g.textBaseline = "top";
+		draw_text_width(g, self.msg, x+r, y+r, x2-x-(r+r), 36);
 	}
 	
 	self.update_enemy = function (g)
@@ -187,11 +307,11 @@ function HuntScene()
 				}
 				else if (t.group == GROUP.MATE)
 				{
-					draw_color = COLOR.DARK_GREEN2;
+					draw_color = COLOR.DARK_GREEN;
 				}
 				else if (t.group == GROUP.ENEMY)
 				{
-					draw_color = COLOR.DARK_RED;
+					draw_color = COLOR.RED;
 				}
 				else
 				{
@@ -319,8 +439,10 @@ function HuntScene()
 		}
 	}
 	
-	self.update_attr = function (g)
+	self.update_hpmp = function (g)
 	{
+		self.hpmp_draw_back = true;
+		self.hpmp_draw_back_color = COLOR.BLACK;
 		// HP
 		{
 			var new_rate = self.hp / self.mhp;
@@ -375,6 +497,11 @@ function HuntScene()
 				g.moveTo(ex, h);
 				g.lineTo(r, h);
 				g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
+				if (self.hpmp_draw_back)
+				{
+					g.fillStyle = self.hpmp_draw_back_color;
+					g.fill();
+				}
 				g.save();
 				g.clip();
 				{
@@ -465,6 +592,11 @@ function HuntScene()
 				g.moveTo(ex, h);
 				g.lineTo(r, h);
 				g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
+				if (self.hpmp_draw_back)
+				{
+					g.fillStyle = self.hpmp_draw_back_color;
+					g.fill();
+				}
 				g.save();
 				g.clip();
 				{
@@ -728,6 +860,11 @@ function HuntScene()
 	{
 		self.generate_enemy();
 		self.adjust_enemy_location();
+	}
+	
+	self.set_background = function (bg)
+	{
+		self.background = bg;
 	}
 	
 	self.is_key = function(key)

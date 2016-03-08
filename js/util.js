@@ -134,3 +134,36 @@ function is_collide(p, q)
 	return (dx*dx) + (dy*dy) < r*r;
 }
 
+function draw_text_width(g, text, x, y, width, line_h)
+{
+	var ss = [];
+	var s = "";
+	g.translate(x, y);
+	for (var i=0; i<text.length; i++)
+	{
+		var code = text.charCodeAt(i);
+		if (code < 32 && code != 10)
+		{
+			continue;
+		}
+		if (code == 10 || g.measureText(s+text[i]).width > width)
+		{
+			ss.push(s);
+			s = "";
+		}
+		if (code != 10)
+		{
+			s += text[i];
+		}
+	}
+	if (s != "")
+	{
+		ss.push(s);
+	}
+	for (var i=0; i<ss.length; i++)
+	{
+		g.fillText(ss[i], 0, line_h*i);
+	}
+	g.translate(-x, -y);
+}
+
