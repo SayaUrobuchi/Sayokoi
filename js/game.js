@@ -3,6 +3,12 @@ var game = {
 	stg_stage: 1, 
 };
 
+var GROUP = {
+	NONE: 0, 
+	MATE: 1, 
+	ENEMY: 2, 
+};
+
 var image = {};
 var audio = {};
 
@@ -175,6 +181,10 @@ UI.MP_BAR = extend(UI.HP_BAR, {
 	TEXT: "魔力", 
 	FRONT_COLOR: COLOR.BLUE, 
 });
+
+UI.TIMELINE = {
+	FONT: "24px "+UI.DEFAULT_FONT, 
+};
 
 UI.SUB = {
 	OFFSET_X: 500, 

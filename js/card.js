@@ -26,7 +26,7 @@ Card.draw_hand = function (id, g, field)
 	style.addColorStop(.5, COLOR.RED);
 	style.addColorStop(1, COLOR.DARK_RED);
 	g.fillStyle = style;
-	g.strokeStyle = COLOR.BRIGHT_BLUE;
+	g.strokeStyle = "#CC00FF";
 	g.fillRect(0, 0, UI.HAND.WIDTH, UI.HAND.HEIGHT);
 	var w = 2;
 	g.lineWidth = w;

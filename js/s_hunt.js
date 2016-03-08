@@ -160,6 +160,127 @@ function HuntScene()
 	
 	self.update_timeline = function (g)
 	{
+		self.timeline = [
+		{
+			name: "紅蓮劫火", 
+			spd: 17, 
+			group: GROUP.MATE, 
+		}, 
+		{
+			name: "靜止吧！『世界』", 
+			spd: 115, 
+			group: GROUP.MATE, 
+			is_preview: true, 
+		}, 
+		{
+			name: "恋符．恋色花火", 
+			spd: 9, 
+			group: GROUP.ENEMY, 
+		}, 
+		{
+			name: "一閃", 
+			spd: 6, 
+			group: GROUP.MATE, 
+		}, 
+		{
+			name: "斬", 
+			spd: -13, 
+			group: GROUP.ENEMY, 
+		}, 
+		];
+		var xx = 340;
+		var yy = 10;
+		var yint = 18;
+		var id = 0;
+		self.timeline_draw = [
+		{
+			a: 1, 
+			x: xx, 
+			y: yy+yint*id++, 
+			ta: 1, 
+			tx: xx, 
+			ty: yy+yint*id++, 
+		}, 
+		{
+			a: 1, 
+			x: xx, 
+			y: yy+yint*id++, 
+			ta: 1, 
+			tx: xx, 
+			ty: yy+yint*id++, 
+		}, 
+		{
+			a: 1, 
+			x: xx, 
+			y: yy+yint*id++, 
+			ta: 1, 
+			tx: xx, 
+			ty: yy+yint*id++, 
+		}, 
+		{
+			a: 1, 
+			x: xx, 
+			y: yy+yint*id++, 
+			ta: 1, 
+			tx: xx, 
+			ty: yy+yint*id++, 
+		}, 
+		{
+			a: 1, 
+			x: xx, 
+			y: yy+yint*id++, 
+			ta: 1, 
+			tx: xx, 
+			ty: yy+yint*id++, 
+		}, 
+		];
+		
+		for (var i=0; i<self.timeline.length; i++)
+		{
+			var t = self.timeline[i];
+			var td = self.timeline_draw[i];
+			var spd = .2;
+			td.a = lerp(td.a, td.ta, spd);
+			td.x = lerp(td.x, td.tx, spd);
+			td.y = lerp(td.y, td.ty, spd);
+			
+			var temp_a = g.globalAlpha;
+			g.globalAlpha = td.a;
+			{
+				var draw_color;
+				g.font = UI.TIMELINE.FONT;
+				if (t.is_preview)
+				{
+					draw_color = COLOR.YELLOW;
+				}
+				else if (t.group == GROUP.MATE)
+				{
+					draw_color = COLOR.DARK_GREEN2;
+				}
+				else if (t.group == GROUP.ENEMY)
+				{
+					draw_color = COLOR.DARK_RED;
+				}
+				g.fillStyle = draw_color;
+				g.textAlign = "right";
+				g.textBaseline = "top";
+				g.fillText(t.spd+":", td.x+36, td.y);
+				g.textAlign = "left";
+				g.fillText(t.name, td.x+44, td.y);
+				var text_w = g.measureText(t.name).width;
+				var grad = g.createLinearGradient(td.x-12, 0, td.x+100+text_w, 0);
+				grad.addColorStop(0, draw_color);
+				grad.addColorStop(0.5, draw_color);
+				grad.addColorStop(1, COLOR.TRANSPARENT);
+				g.strokeStyle = grad;
+				g.beginPath();
+				g.moveTo(td.x-12, td.y+34);
+				g.lineTo(td.x+300, td.y+34);
+				g.lineWidth = 3;
+				g.stroke();
+			}
+			g.globalAlpha = temp_a;
+		}
 	}
 	
 	self.update_hand = function (g)
