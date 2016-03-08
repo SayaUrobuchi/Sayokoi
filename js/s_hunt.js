@@ -237,19 +237,26 @@ function HuntScene()
 		}
 		if (self.is_key(INPUT.DECIDE))
 		{
-			self.remove_preview_action();
-			self.hand_use();
-			self.insert_preview_action();
+			if (self.can_hand_use())
+			{
+				self.remove_preview_action();
+				self.hand_use();
+				self.insert_preview_action();
+			}
 			self.key_delay(INPUT.DECIDE, Infinity);
 		}
 		if (self.is_key(INPUT.CANCEL))
 		{
-			self.remove_preview_action();
-			self.hand_rollback();
-			self.insert_preview_action();
+			if (self.can_hand_rollback())
+			{
+				self.remove_preview_action();
+				self.hand_rollback();
+				self.insert_preview_action();
+			}
 			self.key_delay(INPUT.CANCEL, Infinity);
 		}
 		var modify = -Math.floor((self.hand.length-1)/2);
+		var modify_t = modify;
 		var x_mod = 16;
 		var x_accr = .7;
 		var y_mod = modify*4;
@@ -260,8 +267,8 @@ function HuntScene()
 		for (var i=0; i<self.hand.length; i++, modify++)
 		{
 			var idx = (self.hand_current + modify + self.hand.length) % self.hand.length;
-			self.hand_scale = 1 - Math.abs(modify)*.04;
 			self.hand_draw_pos = self.hand_pos[idx];
+			self.hand_draw_pos.scale = 1 - Math.abs(modify)*.04;
 			self.hand_draw_pos.x = self.hand_x;
 			self.hand_draw_pos.y = self.hand_y;
 			var diff = (self.hand_draw_pos.y-self.hand_draw_pos.real_y);
@@ -279,7 +286,6 @@ function HuntScene()
 			if (idx == self.hand_current)
 			{
 				self.hand_is_current = true;
-				Card.draw_hand(self.hand[idx], g, self);
 				self.hand_y += UI.HAND.MAIN_HEIGHT;
 				x_mod = -x_mod;
 				x_accr = 1/x_accr;
@@ -289,7 +295,6 @@ function HuntScene()
 			else
 			{
 				self.hand_is_current = false;
-				Card.draw_hand(self.hand[idx], g, self);
 				self.hand_y += UI.HAND.HEIGHT;
 				y_mod += y_add;
 				y_add += y_add2;
@@ -301,6 +306,16 @@ function HuntScene()
 			self.hand_y += y_mod;
 			self.hand_x += x_mod;
 			x_mod *= x_accr;
+		}
+		for (var i=modify_t, j=self.hand.length-1+i; i<=0; i++, j--)
+		{
+			var idx = (self.hand_current+i+self.hand.length) % self.hand.length;
+			Card.draw_hand(idx, g, self);
+			if (i != j)
+			{
+				idx = (self.hand_current+j+self.hand.length) % self.hand.length;
+				Card.draw_hand(idx, g, self);
+			}
 		}
 	}
 	
@@ -629,6 +644,11 @@ function HuntScene()
 		return res;
 	}
 	
+	self.can_hand_use = function ()
+	{
+		return Card.is_usable(self.hand[self.hand_current], self);
+	}
+	
 	self.hand_use = function ()
 	{
 		var card = self.hand[self.hand_current];
@@ -639,6 +659,11 @@ function HuntScene()
 			self.hand_temp.push(card);
 			self.insert_action(Action(card, GROUP.MATE));
 		}
+	}
+	
+	self.can_hand_rollback = function ()
+	{
+		return self.hand_temp.length > 0;
 	}
 	
 	self.hand_rollback = function ()

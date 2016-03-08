@@ -5,17 +5,19 @@ var Card = {};
 Card.SIDE_BATTLE = 1;
 Card.SIDE_DISCOVER = 2;
 
-Card.draw_hand = function (id, g, field)
+Card.draw_hand = function (idx, g, field)
 {
+	var id = field.hand[idx];
+	var draw_pos = field.hand_pos[idx];
 	var c = CARD[id];
-	var x = field.hand_draw_pos.real_x;
-	var y = field.hand_draw_pos.real_y;
-	var a = field.hand_draw_pos.real_a;
-	var scale = field.hand_scale;
-	var desc_a = field.hand_draw_pos.real_desc_a;
-	var desc_h = field.hand_draw_pos.real_desc_h;
+	var x = draw_pos.real_x;
+	var y = draw_pos.real_y;
+	var a = draw_pos.real_a;
+	var scale = draw_pos.scale;
+	var desc_a = draw_pos.real_desc_a;
+	var desc_h = draw_pos.real_desc_h;
 	var side = (field.state == HUNT_STATE.DISCOVER ? Card.SIDE_DISCOVER : Card.SIDE_BATTLE);
-	var current = field.hand_is_current;
+	var current = idx == field.hand_current;
 	var now_a = g.globalAlpha;
 	g.globalAlpha *= a;
 	g.translate(x, y);
