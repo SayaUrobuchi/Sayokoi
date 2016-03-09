@@ -53,7 +53,7 @@ Card.draw_hand = function (idx, g, field)
 		text_y = 12;
 		g.fillText(num_format(c.speed, 2), text_x, text_y);
 		// cost
-		g.fillStyle = (c.cost > field.mp ? UI.HAND.UNUSABLE_COLOR : UI.HAND.USABLE_COLOR);
+		g.fillStyle = (Card.is_usable(id, field) ? UI.HAND.USABLE_COLOR : UI.HAND.UNUSABLE_COLOR);
 		g.font = UI.HAND.COST_FONT;
 		text_x = 4;
 		text_y = 32;
@@ -84,10 +84,10 @@ Card.draw_hand = function (idx, g, field)
 			// desc
 			g.fillStyle = UI.HAND.TEXT_COLOR;
 			g.font = UI.HAND.TEXT_FONT;
-			text_x = 8;
+			text_x = 12;
 			text_y = UI.HAND.HEIGHT + 8;
 			g.textBaseline = "top";
-			g.fillText(c.desc, text_x, text_y);
+			draw_text_width(g, c.desc, text_x, text_y, UI.HAND.WIDTH-16, 24);
 			g.globalAlpha = temp_a;
 		}
 	}
@@ -99,15 +99,15 @@ Card.draw_hand = function (idx, g, field)
 
 Card.is_usable = function (id, field)
 {
-	return field.mp >= CARD[id].cost;
+	return field.player_battler.mp >= CARD[id].cost;
 }
 
 Card.cost_mp = function (id, field)
 {
-	field.mp -= CARD[id].cost;
+	field.player_battler.mp -= CARD[id].cost;
 }
 
 Card.recover_cost_mp = function (id, field)
 {
-	field.mp += CARD[id].cost;
+	field.player_battler.mp += CARD[id].cost;
 }

@@ -13,7 +13,7 @@ CARD[998] = extend(CARD_TEMPLATE, {
 	cost: 5, 
 	speed: 4, 
 	name: "地獄斬", 
-	desc: "來自地獄的無情斬擊！！", 
+	desc: "來自地獄的無情斬擊！！\n歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉歐拉", 
 });
 
 CARD[999] = extend(CARD_TEMPLATE, {

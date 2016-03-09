@@ -93,12 +93,14 @@ function Enemy(id)
 	
 	self.draw = function (field, g)
 	{
+		self.draw_shake(field, g);
 		if (!self.hide)
 		{
 			self.data.draw(field, g, self);
 		}
 		self.draw_name(field, g);
 		self.draw_damage_popup(field, g);
+		self.draw_shake_after(field, g);
 	}
 	
 	self.draw_name = function (field, g)
@@ -131,6 +133,33 @@ function Enemy(id)
 		}
 	}
 	
+	self.draw_shake = function (field, g)
+	{
+		if (self.shake_count < self.shake_length)
+		{
+			self.shake_temp_x = 0;
+			self.shake_temp_y = random(self.shake_power);
+			g.translate(self.shake_temp_x, self.shake_temp_y);
+			self.shake_count++;
+		}
+	}
+	
+	self.draw_shake_after = function (field, g)
+	{
+		if (self.shake_count < self.shake_length)
+		{
+			g.translate(-self.shake_temp_x, -self.shake_temp_y);
+			self.shake_count++;
+		}
+	}
+	
+	self.shake = function (power, length)
+	{
+		self.shake_power = power;
+		self.shake_length = length;
+		self.shake_count = 0;
+	}
+	
 	self.take_damage = function (field, value)
 	{
 		self.damage_popup.push({
@@ -142,6 +171,8 @@ function Enemy(id)
 			scale: 1.8, 
 			color: COLOR.RED, 
 		});
+		var shake_power = (1+value/self.mhp*2) * 6;
+		self.shake(shake_power, 20);
 		self.hp -= value;
 		if (self.hp <= 0)
 		{

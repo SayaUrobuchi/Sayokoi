@@ -64,31 +64,13 @@ function HuntScene()
 		self.timeline = [];
 		self.timeline_draw = [];
 		
-		self.player_battler = {
+		self.player_battler = Hero({
 			hp: 100, 
 			mp: 40, 
 			mp_init: 20, 
 			mp_regen: 15, 
 			atk: 20, 
-			group: GROUP.MATE, 
-			take_damage: function (field, damage)
-			{
-				field.hp -= damage;
-			}, 
-		};
-		
-		self.mhp = self.player_battler.hp;
-		self.hp = self.mhp;
-		self.mmp = self.player_battler.mp;
-		self.mp = self.player_battler.mp_init;
-		self.mp_regen = self.player_battler.mp_regen;
-		self.hp_draw_back = 0;
-		self.hp_draw_front = 0;
-		self.mp_draw_back = 0;
-		self.mp_draw_front = 0;
-		self.hp_prev = 0;
-		self.hp_draw_prev = 0;
-		self.mp_prev = 0;
+		});
 		
 		self.tachie = image.TACHIE_YOYO_NORMAL;
 		self.tachie2 = image.TACHIE_SAKO_NORMAL;
@@ -114,6 +96,8 @@ function HuntScene()
 		self.update_state();
 		self.update_logic();
 		
+		self.update_shake(g);
+		
 		if (self.state >= HUNT_STATE.READY)
 		{
 			self.update_background(g);
@@ -126,11 +110,13 @@ function HuntScene()
 			}
 			
 			self.update_msg(g);
+			self.update_hero(g);
 			self.update_hand(g);
-			self.update_hpmp(g);
 			
 			self.update_helper();
 		}
+		
+		self.update_shake_after(g);
 	}
 	
 	self.update_state = function ()
@@ -176,6 +162,7 @@ function HuntScene()
 			}
 			if (self.turn_state == HUNT_STATE.TURN_PREPARE)
 			{
+				self.player_battler.set_mp_preview(-CARD[self.hand[self.hand_current]].cost);
 				if (self.is_key(INPUT.DOWN))
 				{
 					self.hand_current = (self.hand_current+1) % self.hand.length;
@@ -367,7 +354,7 @@ function HuntScene()
 				g.font = UI.GENERAL.SUB_TITLE_FONT;
 				g.textAlign = "center";
 				g.textBaseline = "top";
-				draw_text_width(g, msg, x+(x2-x)/2, y+r/2, x2-x-(r+r), 36);
+				g.fillText(msg, x+(x2-x)/2, y+r/2);
 			}
 		}
 		// bottom msg
@@ -405,6 +392,12 @@ function HuntScene()
 			g.textBaseline = "top";
 			draw_text_width(g, self.msg, x+r, y+r, x2-x-(r+r), 36);
 		}
+	}
+	
+	self.update_hero = function (g)
+	{
+		self.player_battler.update(self);
+		self.player_battler.draw(self, g);
 	}
 	
 	self.update_enemy = function (g)
@@ -563,7 +556,6 @@ function HuntScene()
 				x_mod = -x_mod;
 				x_accr = 1/x_accr;
 				y_add = -y_add + y_add2;
-				self.mp_prev = -CARD[self.hand[idx]].cost;
 			}
 			else
 			{
@@ -592,223 +584,29 @@ function HuntScene()
 		}
 	}
 	
-	self.update_hpmp = function (g)
-	{
-		self.hpmp_draw_back = true;
-		self.hpmp_draw_back_color = COLOR.BLACK;
-		// HP
-		{
-			var new_rate = self.hp / self.mhp;
-			if (new_rate != self.hp_rate)
-			{
-				self.hp_rate = new_rate;
-				self.hp_draw_back_timer = 0;
-				self.hp_draw_back_orig = self.hp_draw_back;
-				self.hp_draw_front_timer = 0;
-				self.hp_draw_front_orig = self.hp_draw_front;
-			}
-			if (self.hp_draw_back_orig < self.hp_rate)
-			{
-				self.hp_draw_back_timer = Math.min(self.hp_draw_back_timer+0.15, 1);
-				self.hp_draw_back = swing_f(self.hp_draw_back_orig, self.hp_rate, self.hp_draw_back_timer);
-			}
-			else
-			{
-				self.hp_draw_back_timer = Math.min(self.hp_draw_back_timer+0.025, 1);
-				self.hp_draw_back = swing_f(self.hp_draw_back_orig, self.hp_rate, self.hp_draw_back_timer);
-				self.hp_draw_value = Math.round(self.mhp * self.hp_draw_back);
-			}
-			if (self.hp_draw_front < self.hp_rate)
-			{
-				self.hp_draw_front_timer = Math.min(self.hp_draw_front_timer+0.025, 1);
-				self.hp_draw_front = swing_f(self.hp_draw_front_orig, self.hp_rate, self.hp_draw_front_timer);
-				self.hp_draw_value = Math.round(self.mhp * self.hp_draw_front);
-			}
-			else
-			{
-				self.hp_draw_front_timer = Math.min(self.hp_draw_front_timer+0.15, 1);
-				self.hp_draw_front = swing_f(self.hp_draw_front_orig, self.hp_rate, self.hp_draw_front_timer);
-			}
-			// draw
-			var w = 3;
-			g.lineWidth = w;
-			var grad;
-			// border
-			var x = UI.HP_BAR.X;
-			var y = UI.SCREEN.HEIGHT - (UI.HP_BAR.HEIGHT + w) * 2;
-			var h = UI.HP_BAR.HEIGHT;
-			var r = h/2;
-			var rate = 1;
-			var ex = UI.SCREEN.WIDTH-r-x-w;
-			var w = ex+r;
-			g.translate(x, y);
-			{
-				g.beginPath();
-				g.moveTo(r, 0);
-				g.lineTo(ex, 0);
-				g.arc(ex, r, r, 1.5*Math.PI, 0.5*Math.PI);
-				g.moveTo(ex, h);
-				g.lineTo(r, h);
-				g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
-				if (self.hpmp_draw_back)
-				{
-					g.fillStyle = self.hpmp_draw_back_color;
-					g.fill();
-				}
-				g.save();
-				g.clip();
-				{
-					grad = g.createLinearGradient(0, 0, 0, h);
-					grad.addColorStop(0, COLOR.RED);
-					grad.addColorStop(1, COLOR.DARK_RED2);
-					g.fillStyle = grad;
-					g.fillRect(0, 0, w*self.hp_draw_back, h);
-					grad = g.createLinearGradient(0, 0, 0, h);
-					grad.addColorStop(0, COLOR.DARK_GREEN);
-					grad.addColorStop(1, COLOR.DARK_GREEN2);
-					g.fillStyle = grad;
-					g.fillRect(0, 0, w*self.hp_draw_front, h);
-				}
-				g.restore();
-				g.strokeStyle = "#663300";
-				g.stroke();
-				// text
-				g.textBaseline = "middle";
-				g.textAlign = "left";
-				g.font = UI.HP_BAR.TEXT_FONT;
-				g.fillStyle = COLOR.TEXT;
-				g.fillText(UI.HP_BAR.TEXT, -48, r);
-				g.textAlign = "right";
-				g.font = UI.HP_BAR.VALUE_FONT;
-				g.fillStyle = COLOR.TEXT;
-				g.fillText(self.hp_draw_value, 84, r);
-				g.textAlign = "right";
-				g.font = UI.HP_BAR.VALUE_FONT;
-				g.fillText(UI.HP_BAR.SEP_TEXT, 96, r);
-				g.textAlign = "left";
-				g.font = UI.HP_BAR.VALUE_FONT;
-				g.fillText(self.mhp, 108, r);
-			}
-			g.translate(-x, -y);
-		}
-		// MP
-		{
-			var new_rate = self.mp / self.mmp;
-			if (new_rate != self.mp_rate)
-			{
-				self.mp_rate = new_rate;
-				self.mp_draw_back_timer = 0;
-				self.mp_draw_back_orig = self.mp_draw_back;
-				self.mp_draw_front_timer = 0;
-				self.mp_draw_front_orig = self.mp_draw_front;
-			}
-			if (self.mp_draw_back_orig < self.mp_rate)
-			{
-				self.mp_draw_back_timer = Math.min(self.mp_draw_back_timer+0.15, 1);
-				self.mp_draw_back = swing_f(self.mp_draw_back_orig, self.mp_rate, self.mp_draw_back_timer);
-			}
-			else
-			{
-				self.mp_draw_back_timer = Math.min(self.mp_draw_back_timer+0.025, 1);
-				self.mp_draw_back = swing_f(self.mp_draw_back_orig, self.mp_rate, self.mp_draw_back_timer);
-				self.mp_draw_value = Math.round(self.mmp * self.mp_draw_back);
-			}
-			if (self.mp_draw_front < self.mp_rate)
-			{
-				self.mp_draw_front_timer = Math.min(self.mp_draw_front_timer+0.025, 1);
-				self.mp_draw_front = swing_f(self.mp_draw_front_orig, self.mp_rate, self.mp_draw_front_timer);
-				self.mp_draw_value = Math.round(self.mmp * self.mp_draw_front);
-			}
-			else
-			{
-				self.mp_draw_front_timer = Math.min(self.mp_draw_front_timer+0.15, 1);
-				self.mp_draw_front = swing_f(self.mp_draw_front_orig, self.mp_rate, self.mp_draw_front_timer);
-			}
-			// draw
-			var w = 3;
-			g.lineWidth = w;
-			var grad;
-			// border
-			var x = UI.MP_BAR.X;
-			var y = UI.SCREEN.HEIGHT - (UI.MP_BAR.HEIGHT + w);
-			var h = UI.MP_BAR.HEIGHT;
-			var r = h/2;
-			var rate = 1;
-			var ex = UI.SCREEN.WIDTH-r-x-w;
-			var w = ex+r;
-			g.translate(x, y);
-			{
-				g.beginPath();
-				g.moveTo(r, 0);
-				g.lineTo(ex, 0);
-				g.arc(ex, r, r, 1.5*Math.PI, 0.5*Math.PI);
-				g.moveTo(ex, h);
-				g.lineTo(r, h);
-				g.arc(r, r, r, 0.5*Math.PI, 1.5*Math.PI);
-				if (self.hpmp_draw_back)
-				{
-					g.fillStyle = self.hpmp_draw_back_color;
-					g.fill();
-				}
-				g.save();
-				g.clip();
-				{
-					grad = g.createLinearGradient(0, 0, 0, h);
-					grad.addColorStop(0, COLOR.RED);
-					grad.addColorStop(1, COLOR.DARK_RED2);
-					g.fillStyle = grad;
-					g.fillRect(0, 0, w*self.mp_draw_back, h);
-					grad = g.createLinearGradient(0, 0, 0, h);
-					grad.addColorStop(0, COLOR.BRIGHT_BLUE);
-					grad.addColorStop(1, COLOR.BLUE);
-					g.fillStyle = grad;
-					g.fillRect(0, 0, w*self.mp_draw_front, h);
-					if (self.mp_prev)
-					{
-						var prev_rate = (self.mp_prev) / self.mmp;
-						g.fillStyle = UI.MP_BAR.PREVIEW_COLOR;
-						g.fillRect(w*self.mp_draw_front, 0, w*prev_rate, h);
-					}
-				}
-				g.restore();
-				g.strokeStyle = "#663300";
-				g.stroke();
-				// text
-				g.textBaseline = "middle";
-				g.textAlign = "left";
-				g.font = UI.MP_BAR.TEXT_FONT;
-				g.fillStyle = COLOR.TEXT;
-				g.fillText(UI.MP_BAR.TEXT, -48, r);
-				g.textAlign = "right";
-				g.font = UI.MP_BAR.VALUE_FONT;
-				g.fillStyle = COLOR.TEXT;
-				g.fillText(self.mp_draw_value, 84, r);
-				g.textAlign = "right";
-				g.font = UI.MP_BAR.VALUE_FONT;
-				g.fillText(UI.MP_BAR.SEP_TEXT, 96, r);
-				g.textAlign = "left";
-				g.font = UI.MP_BAR.VALUE_FONT;
-				g.fillText(self.mmp, 108, r);
-				if (self.mp_prev)
-				{
-					g.textAlign = "left";
-					g.font = UI.MP_BAR.VALUE_FONT;
-					var mp_prev_string = "(";
-					if (self.mp_prev > 0)
-					{
-						mp_prev_string += "+";
-					}
-					mp_prev_string += self.mp_prev + ")";
-					g.fillText(mp_prev_string, 196, r);
-				}
-			}
-			g.translate(-x, -y);
-		}
-	}
-	
 	self.update_helper = function ()
 	{
 		set_helper(self.helper_str);
+	}
+	
+	self.update_shake = function (g)
+	{
+		if (self.shake_count < self.shake_length)
+		{
+			self.shake_temp_x = 0;
+			self.shake_temp_y = random(self.shake_power);
+			g.translate(self.shake_temp_x, self.shake_temp_y);
+			self.shake_count++;
+		}
+	}
+	
+	self.update_shake_after = function (g)
+	{
+		if (self.shake_count < self.shake_length)
+		{
+			g.translate(-self.shake_temp_x, -self.shake_temp_y);
+			self.shake_count++;
+		}
 	}
 	
 	self.insert_preview_action = function ()
@@ -1045,13 +843,16 @@ function HuntScene()
 	
 	self.turn_execute = function ()
 	{
+		self.player_battler.clear_hp_preview();
+		self.player_battler.clear_mp_preview();
 		self.turn_state = HUNT_STATE.TURN_EXECUTE;
 	}
 	
 	self.turn_end = function ()
 	{
 		self.draw_card(Math.min(self.hand_limit-self.hand.length, self.turn_draw));
-		self.mp = Math.min(self.mp+self.mp_regen, self.mmp);
+		self.player_battler.regen_mp(self);
+		self.player_battler.fadeout_hp_preview();
 		self.turn_state = HUNT_STATE.TURN_END;
 	}
 	
@@ -1063,6 +864,13 @@ function HuntScene()
 	self.set_background = function (bg)
 	{
 		self.background = bg;
+	}
+	
+	self.shake = function (power, length)
+	{
+		self.shake_power = power;
+		self.shake_length = length;
+		self.shake_count = 0;
 	}
 	
 	self.is_key = function(key)
