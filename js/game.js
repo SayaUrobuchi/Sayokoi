@@ -75,6 +75,10 @@ var INPUT = {
 	SUB: 8, 
 	PAGEUP: 9, 
 	PAGEDOWN: 10, 
+	
+	VERTICAL: 128, 
+	HORIZONTAL: 129, 
+	ARROW: 130, 
 };
 
 function parse_key(key)
@@ -143,6 +147,7 @@ UI.SCREEN = {
 
 UI.GENERAL = {
 	SUB_TITLE_FONT: "28px "+UI.DEFAULT_FONT, 
+	DAMAGE_FONT: "50px "+UI.DEFAULT_ASCII_FONT, 
 };
 
 // ---- loading

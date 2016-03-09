@@ -167,3 +167,67 @@ function draw_text_width(g, text, x, y, width, line_h)
 	g.translate(-x, -y);
 }
 
+function set_helper(msg)
+{
+	op_help.innerHTML = msg;
+}
+
+function generate_helper_str(data)
+{
+	var s = "";
+	for (var item in data)
+	{
+		switch (data[item][0])
+		{
+		case INPUT.VERTICAL:
+			s += generate_html_colored_string("↓↑", "#FFFF66");
+			break;
+		case INPUT.HORIZONTAL:
+			s += generate_html_colored_string("←→", "#FFFF66");
+			break;
+		case INPUT.ARROW:
+			s += generate_html_colored_string("←↓↑→", "#FFFF66");
+			break;
+		case INPUT.DECIDE:
+			s += generate_html_colored_string("Ｃ", "#FFFF66");
+			break;
+		case INPUT.CANCEL:
+			s += generate_html_colored_string("Ｘ", "#FFFF66");
+			break;
+		case INPUT.MENU:
+			s += generate_html_colored_string("Ｖ", "#FFFF66");
+			break;
+		case INPUT.SUB:
+			s += generate_html_colored_string("Ｚ", "#FFFF66");
+			break;
+		case INPUT.PAGEUP:
+			s += generate_html_colored_string("Ａ", "#FFFF66");
+			break;
+		case INPUT.PAGEDOWN:
+			s += generate_html_colored_string("Ｓ", "#FFFF66");
+			break;
+		case INPUT.UP:
+			s += generate_html_colored_string("↑", "#FFFF66");
+			break;
+		case INPUT.DOWN:
+			s += generate_html_colored_string("↓", "#FFFF66");
+			break;
+		case INPUT.LEFT:
+			s += generate_html_colored_string("←", "#FFFF66");
+			break;
+		case INPUT.RIGHT:
+			s += generate_html_colored_string("→", "#FFFF66");
+			break;
+		}
+		s += data[item][1];
+		s += "　　";
+	}
+	return s;
+}
+
+function generate_html_colored_string(str, color)
+{
+	var s = '<font color="'+color+'">'+str+'</font>';
+	return s;
+}
+

@@ -6,6 +6,10 @@ var HUNT_STATE = {
 	DISCOVER: 2, 
 	EVENT: 3, 
 	END: 32, 
+	TURN_START: 128, 
+	TURN_PREPARE: 129, 
+	TURN_EXECUTE: 130, 
+	TURN_END: 131, 
 };
 
 var HUNT_EVENT = {
@@ -34,6 +38,7 @@ function HuntScene()
 		self.state = HUNT_STATE.NONE;
 		
 		self.hand_limit = 10;
+		self.turn_draw = 3;
 		
 		self.hand_current = 0;
 		self.hand = [];
@@ -59,11 +64,24 @@ function HuntScene()
 		self.timeline = [];
 		self.timeline_draw = [];
 		
-		self.mhp = 100;
+		self.player_battler = {
+			hp: 100, 
+			mp: 40, 
+			mp_init: 20, 
+			mp_regen: 15, 
+			atk: 20, 
+			group: GROUP.MATE, 
+			take_damage: function (field, damage)
+			{
+				field.hp -= damage;
+			}, 
+		};
+		
+		self.mhp = self.player_battler.hp;
 		self.hp = self.mhp;
-		self.mmp = 40;
-		self.mp = 20;
-		self.mp_recover = 15;
+		self.mmp = self.player_battler.mp;
+		self.mp = self.player_battler.mp_init;
+		self.mp_regen = self.player_battler.mp_regen;
 		self.hp_draw_back = 0;
 		self.hp_draw_front = 0;
 		self.mp_draw_back = 0;
@@ -82,10 +100,6 @@ function HuntScene()
 		self.set_background(image.BG_FOREST_TWILIGHT);
 		
 		self.draw_card(self.hand_limit);
-		self.insert_action(Action(99998, GROUP.ENEMY));
-		self.insert_action(Action(99997, GROUP.ENEMY));
-		self.insert_action(Action(99999, GROUP.ENEMY));
-		self.insert_preview_action();
 		
 		self.clear_input();
 	}
@@ -104,7 +118,6 @@ function HuntScene()
 		{
 			self.update_background(g);
 			self.update_tachie(g);
-			self.update_msg(g);
 			
 			if (self.state == HUNT_STATE.EVENT)
 			{
@@ -112,8 +125,11 @@ function HuntScene()
 				self.update_timeline(g);
 			}
 			
+			self.update_msg(g);
 			self.update_hand(g);
 			self.update_hpmp(g);
+			
+			self.update_helper();
 		}
 	}
 	
@@ -151,6 +167,93 @@ function HuntScene()
 	
 	self.update_logic = function ()
 	{
+		switch (self.state)
+		{
+		case HUNT_STATE.EVENT:
+			if (self.turn_state == HUNT_STATE.TURN_START)
+			{
+				self.turn_start();
+			}
+			if (self.turn_state == HUNT_STATE.TURN_PREPARE)
+			{
+				if (self.is_key(INPUT.DOWN))
+				{
+					self.hand_current = (self.hand_current+1) % self.hand.length;
+					self.key_delay(INPUT.DOWN, 10, 30);
+					self.remove_preview_action();
+					self.insert_preview_action();
+				}
+				if (self.is_key(INPUT.UP))
+				{
+					self.hand_current = (self.hand_current-1+self.hand.length) % self.hand.length;
+					self.key_delay(INPUT.UP, 10, 30);
+					self.remove_preview_action();
+					self.insert_preview_action();
+				}
+				if (self.is_key(INPUT.DECIDE))
+				{
+					if (self.can_hand_use())
+					{
+						self.remove_preview_action();
+						self.hand_use();
+						self.insert_preview_action();
+					}
+					self.key_delay(INPUT.DECIDE, Infinity);
+				}
+				if (self.is_key(INPUT.CANCEL))
+				{
+					if (self.can_hand_rollback())
+					{
+						self.remove_preview_action();
+						self.hand_rollback();
+						self.insert_preview_action();
+					}
+					self.key_delay(INPUT.CANCEL, Infinity);
+				}
+				if (self.is_key(INPUT.MENU))
+				{
+					self.remove_preview_action();
+					self.turn_execute();
+					self.key_delay(INPUT.MENU, Infinity);
+				}
+			}
+			if (self.turn_state == HUNT_STATE.TURN_EXECUTE)
+			{
+				if (self.executing_action)
+				{
+					self.executing_action.execute(self);
+					if (self.executing_action.is_finish())
+					{
+						if (self.executing_action.group == GROUP.MATE)
+						{
+							self.deck.push(self.executing_action.card_id);
+						}
+						self.executing_action = null;
+					}
+				}
+				else
+				{
+					if (self.timeline.length > 0)
+					{
+						self.executing_action = self.timeline.shift();
+						self.executing_action_draw = self.timeline_draw.shift();
+						self.executing_action_draw.ta = 0;
+						self.executing_action_draw.tx += 240;
+						self.executing_action.start(self);
+						self.adjust_action();
+					}
+					else
+					{
+						self.turn_end();
+					}
+				}
+			}
+			if (self.turn_state == HUNT_STATE.TURN_END)
+			{
+				self.turn_state = HUNT_STATE.TURN_START;
+			}
+			break;
+		}
 	}
 	
 	self.update_background = function (g)
@@ -236,38 +339,72 @@ function HuntScene()
 	
 	self.update_msg = function (g)
 	{
-		self.msg = "臣亮言：先帝創業未半，而中道崩殂。今天下三分，益州疲弊，此誠危急存亡之秋也。然侍衛之臣，不懈於內；忠志之士，忘身於外";
-		var x = 400;
-		var y = UI.SCREEN.HEIGHT-220;
-		var r = 24;
-		var x2 = UI.SCREEN.WIDTH - 16;
-		var y2 = y + 128;
-		var dy = y2-r-12;
-		var dyo = dy+16;
-		var dy2 = y+r+28;
-		var dx = x-40;
-		g.fillStyle = COLOR.DARK_RED2;
-		g.beginPath();
-		g.moveTo(x+r, y);
-		g.lineTo(x2-r, y);
-		g.arcTo(x2, y, x2, y+r, r);
-		g.lineTo(x2, y2-r);
-		g.arcTo(x2, y2, x2-r, y2, r);
-		g.lineTo(x+r, y2);
-		g.arcTo(x, y2, x, y2-r, r);
-		g.lineTo(x, dy);
-		g.lineTo(dx, dyo);
-		g.lineTo(x, dy2);
-		g.lineTo(x, y+r);
-		g.arcTo(x, y, x+r, y, r);
-		g.fill();
-		g.strokeStyle = COLOR.DARK_RED;
-		g.stroke();
-		g.fillStyle = COLOR.TEXT;
-		g.font = UI.GENERAL.SUB_TITLE_FONT;
-		g.textAlign = "left";
-		g.textBaseline = "top";
-		draw_text_width(g, self.msg, x+r, y+r, x2-x-(r+r), 36);
+		// top msg
+		{
+			if (self.executing_action)
+			{
+				var msg = self.executing_action.data.name;
+				var x = 600;
+				var y = 16;
+				var r = 8;
+				var x2 = UI.SCREEN.WIDTH - 160;
+				var y2 = y + 48;
+				g.fillStyle = COLOR.DARK_RED2;
+				g.beginPath();
+				g.moveTo(x+r, y);
+				g.lineTo(x2-r, y);
+				g.arcTo(x2, y, x2, y+r, r);
+				g.lineTo(x2, y2-r);
+				g.arcTo(x2, y2, x2-r, y2, r);
+				g.lineTo(x+r, y2);
+				g.arcTo(x, y2, x, y2-r, r);
+				g.lineTo(x, y+r);
+				g.arcTo(x, y, x+r, y, r);
+				g.fill();
+				g.strokeStyle = COLOR.DARK_RED;
+				g.stroke();
+				g.fillStyle = COLOR.TEXT;
+				g.font = UI.GENERAL.SUB_TITLE_FONT;
+				g.textAlign = "center";
+				g.textBaseline = "top";
+				draw_text_width(g, msg, x+(x2-x)/2, y+r/2, x2-x-(r+r), 36);
+			}
+		}
+		// bottom msg
+		{
+			self.msg = "臣亮言：先帝創業未半，而中道崩殂。今天下三分，益州疲弊，此誠危急存亡之秋也。然侍衛之臣，不懈於內；忠志之士，忘身於外";
+			var x = 400;
+			var y = UI.SCREEN.HEIGHT-220;
+			var r = 24;
+			var x2 = UI.SCREEN.WIDTH - 16;
+			var y2 = y + 128;
+			var dy = y2-r-12;
+			var dyo = dy+16;
+			var dy2 = y+r+28;
+			var dx = x-40;
+			g.fillStyle = COLOR.DARK_RED2;
+			g.beginPath();
+			g.moveTo(x+r, y);
+			g.lineTo(x2-r, y);
+			g.arcTo(x2, y, x2, y+r, r);
+			g.lineTo(x2, y2-r);
+			g.arcTo(x2, y2, x2-r, y2, r);
+			g.lineTo(x+r, y2);
+			g.arcTo(x, y2, x, y2-r, r);
+			g.lineTo(x, dy);
+			g.lineTo(dx, dyo);
+			g.lineTo(x, dy2);
+			g.lineTo(x, y+r);
+			g.arcTo(x, y, x+r, y, r);
+			g.fill();
+			g.strokeStyle = COLOR.DARK_RED;
+			g.stroke();
+			g.fillStyle = COLOR.TEXT;
+			g.font = UI.GENERAL.SUB_TITLE_FONT;
+			g.textAlign = "left";
+			g.textBaseline = "top";
+			draw_text_width(g, self.msg, x+r, y+r, x2-x-(r+r), 36);
+		}
 	}
 	
 	self.update_enemy = function (g)
@@ -287,6 +424,56 @@ function HuntScene()
 	
 	self.update_timeline = function (g)
 	{
+		if (self.executing_action)
+		{
+			var t = self.executing_action;
+			var td = self.executing_action_draw;
+			var spd = .08;
+			td.a = lerp(td.a, td.ta, spd);
+			td.x = lerp(td.x, td.tx, spd);
+			td.y = lerp(td.y, td.ty, spd);
+			
+			var temp_a = g.globalAlpha;
+			g.globalAlpha = td.a;
+			{
+				var draw_color;
+				g.font = UI.TIMELINE.FONT;
+				if (t.is_preview)
+				{
+					draw_color = COLOR.YELLOW;
+				}
+				else if (t.group == GROUP.MATE)
+				{
+					draw_color = COLOR.DARK_GREEN;
+				}
+				else if (t.group == GROUP.ENEMY)
+				{
+					draw_color = COLOR.RED;
+				}
+				else
+				{
+					draw_color = COLOR.GRAY;
+				}
+				g.fillStyle = draw_color;
+				g.textAlign = "right";
+				g.textBaseline = "top";
+				g.fillText(t.speed+":", td.x+36, td.y);
+				g.textAlign = "left";
+				g.fillText(t.name, td.x+44, td.y);
+				var text_w = g.measureText(t.name).width;
+				var grad = g.createLinearGradient(td.x-12, 0, td.x+100+text_w, 0);
+				grad.addColorStop(0, draw_color);
+				grad.addColorStop(0.5, draw_color);
+				grad.addColorStop(1, COLOR.TRANSPARENT);
+				g.strokeStyle = grad;
+				g.beginPath();
+				g.moveTo(td.x-12, td.y+34);
+				g.lineTo(td.x+300, td.y+34);
+				g.lineWidth = 3;
+				g.stroke();
+			}
+			g.globalAlpha = temp_a;
+		}
 		for (var i=0; i<self.timeline.length; i++)
 		{
 			var t = self.timeline[i];
@@ -341,40 +528,6 @@ function HuntScene()
 	
 	self.update_hand = function (g)
 	{
-		if (self.is_key(INPUT.DOWN))
-		{
-			self.hand_current = (self.hand_current+1) % self.hand.length;
-			self.key_delay(INPUT.DOWN, 10, 30);
-			self.remove_preview_action();
-			self.insert_preview_action();
-		}
-		if (self.is_key(INPUT.UP))
-		{
-			self.hand_current = (self.hand_current-1+self.hand.length) % self.hand.length;
-			self.key_delay(INPUT.UP, 10, 30);
-			self.remove_preview_action();
-			self.insert_preview_action();
-		}
-		if (self.is_key(INPUT.DECIDE))
-		{
-			if (self.can_hand_use())
-			{
-				self.remove_preview_action();
-				self.hand_use();
-				self.insert_preview_action();
-			}
-			self.key_delay(INPUT.DECIDE, Infinity);
-		}
-		if (self.is_key(INPUT.CANCEL))
-		{
-			if (self.can_hand_rollback())
-			{
-				self.remove_preview_action();
-				self.hand_rollback();
-				self.insert_preview_action();
-			}
-			self.key_delay(INPUT.CANCEL, Infinity);
-		}
 		var modify = -Math.floor((self.hand.length-1)/2);
 		var modify_t = modify;
 		var x_mod = 16;
@@ -653,9 +806,14 @@ function HuntScene()
 		}
 	}
 	
+	self.update_helper = function ()
+	{
+		set_helper(self.helper_str);
+	}
+	
 	self.insert_preview_action = function ()
 	{
-		var action = Action(self.hand[self.hand_current], GROUP.MATE, true);
+		var action = Action(self.hand[self.hand_current], self.player_battler, true);
 		self.insert_action(action);
 	}
 	
@@ -789,7 +947,7 @@ function HuntScene()
 			Card.cost_mp(card, self);
 			self.hand_pop();
 			self.hand_temp.push(card);
-			self.insert_action(Action(card, GROUP.MATE));
+			self.insert_action(Action(card, self.player_battler));
 		}
 	}
 	
@@ -850,16 +1008,56 @@ function HuntScene()
 		var x = self.enemy_area_x + interval;
 		for (var i=0; i<self.enemy.length; i++)
 		{
-			self.enemy[i].x = x + (self.enemy[i].cw)/2;
-			self.enemy[i].y = self.enemy_area_y;
+			self.enemy[i].set_xy(x + (self.enemy[i].cw)/2, self.enemy_area_y);
 			x += self.enemy[i].cw + interval;
 		}
 	}
 	
 	self.event_setup = function ()
 	{
-		self.generate_enemy();
-		self.adjust_enemy_location();
+		if (self.event)
+		{
+			switch (self.event.type)
+			{
+			case HUNT_EVENT.BATTLE:
+				self.set_helper([
+					[INPUT.VERTICAL, "選擇卡片"], 
+					[INPUT.DECIDE, "宣告發動"], 
+					[INPUT.CANCEL, "取消宣告"], 
+					[INPUT.MENU, "回合開始"], 
+				]);
+				self.generate_enemy();
+				self.adjust_enemy_location();
+				self.turn_state = HUNT_STATE.TURN_START;
+				break;
+			}
+		}
+	}
+	
+	self.turn_start = function ()
+	{
+		self.insert_action(Action(99998, self.enemy[0]));
+		self.insert_action(Action(99997, self.enemy[1]));
+		self.insert_action(Action(99999, self.enemy[2]));
+		self.insert_preview_action();
+		self.turn_state = HUNT_STATE.TURN_PREPARE;
+	}
+	
+	self.turn_execute = function ()
+	{
+		self.turn_state = HUNT_STATE.TURN_EXECUTE;
+	}
+	
+	self.turn_end = function ()
+	{
+		self.draw_card(Math.min(self.hand_limit-self.hand.length, self.turn_draw));
+		self.mp = Math.min(self.mp+self.mp_regen, self.mmp);
+		self.turn_state = HUNT_STATE.TURN_END;
+	}
+	
+	self.set_helper = function (data)
+	{
+		self.helper_str = generate_helper_str(data);
 	}
 	
 	self.set_background = function (bg)
