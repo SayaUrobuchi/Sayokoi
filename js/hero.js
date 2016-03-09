@@ -302,6 +302,11 @@ function Hero(data)
 		}
 	}
 	
+	self.heal = function (field, value)
+	{
+		self.hp = Math.min(self.hp+value, self.mhp);
+	}
+	
 	self.regen_mp = function (field, value)
 	{
 		value = value || self.mp_regen;
@@ -315,6 +320,16 @@ function Hero(data)
 	
 	self.die = function (field)
 	{
+	}
+	
+	self.is_alive = function (field)
+	{
+		return self.hp > 0;
+	}
+	
+	self.can_act = function (field)
+	{
+		return self.is_alive();
 	}
 	
 	self.get_hp_prev_scale = function ()

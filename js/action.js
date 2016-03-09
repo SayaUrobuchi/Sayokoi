@@ -25,18 +25,38 @@ function Action(id, caster, is_preview)
 		return action.group - self.group;
 	}
 	
-	self.start = function (field)
+	self.is_available = function (field)
+	{
+		return self.caster.can_act(field) && self.target.length > 0;
+	}
+	
+	self.prepare = function (field)
 	{
 		self.get_target(field);
-		self.power = self.caster.atk;
-		console.log(self.power);
+		self.is_finished = false;
+	}
+	
+	self.start = function (field)
+	{
+		if (self.target.length > 0)
+		{
+			self.power = [];
+			for (var i=0; i<self.target.length; i++)
+			{
+				self.power.push(self.calc_power(field, self.target[i]));
+			}
+		}
 		self.fcnt = 0;
 		self.wait = 0;
-		self.is_finished = false;
 	}
 	
 	self.execute = function (field)
 	{
+		if (!self.caster.can_act(field) || self.target.length <= 0)
+		{
+			self.is_finished = true;
+			return;
+		}
 		if (self.wait && self.fcnt > self.wait)
 		{
 			self.is_finished = true;
@@ -44,8 +64,15 @@ function Action(id, caster, is_preview)
 		}
 		if (!self.wait)
 		{
-			self.wait = self.fcnt + 90;
-			self.target[0].take_damage(field, self.power);
+			self.wait = self.fcnt + 50;
+			if (self.data.type)
+			{
+				self.caster.heal(field, self.power[0]*.8);
+			}
+			else
+			{
+				self.target[0].take_damage(field, self.power[0]);
+			}
 		}
 		self.fcnt++;
 	}
@@ -58,15 +85,21 @@ function Action(id, caster, is_preview)
 		}
 		else
 		{
+			self.target = [];
 			for (var i=0; i<field.enemy.length; i++)
 			{
 				if (field.enemy[i].is_targetable(field))
 				{
-					self.target = [field.enemy[i]];
+					self.target.push(field.enemy[i]);
 					break;
 				}
 			}
 		}
+	}
+	
+	self.calc_power = function (field, target)
+	{
+		return Math.floor(self.caster.atk * (1+field.get_chain_bonus()));
 	}
 	
 	self.is_finish = function ()

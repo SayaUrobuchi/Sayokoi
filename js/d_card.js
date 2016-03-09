@@ -21,4 +21,5 @@ CARD[999] = extend(CARD_TEMPLATE, {
 	speed: 14, 
 	name: "聖癒之光普照大地", 
 	desc: "神聖的治癒之光將恢復 140 點生命。", 
+	type: 1, 
 });

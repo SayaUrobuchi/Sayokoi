@@ -27,6 +27,7 @@ function Enemy(id)
 		self.w = data.w;
 		self.cw = self.w + self.data.cw;
 		self.h = data.img.height * self.w / data.img.width;
+		self.a = 1;
 		self.damage_popup = [];
 		self.group = GROUP.ENEMY;
 		self.state = 0;
@@ -35,16 +36,23 @@ function Enemy(id)
 	
 	self.update = function (field)
 	{
-		if ((field.state == STG.BATTLE || field.state == STG.ENEMY_DEFEAT) && self.fid != field.fid)
-		{
-			self.fid = field.fid;
-			self.update_defeat(field);
-		}
 		self.update_damage_popup(field);
+		self.update_defeat(field);
 	}
 	
 	self.update_defeat = function (field)
 	{
+		if (self.defeat && self.a)
+		{
+			if (self.defeat_wait <= 0)
+			{
+				self.a = Math.max(0, self.a-0.05);
+			}
+			else
+			{
+				self.defeat_wait--;
+			}
+		}
 	}
 	
 	self.update_damage_popup = function (field)
@@ -94,11 +102,16 @@ function Enemy(id)
 	self.draw = function (field, g)
 	{
 		self.draw_shake(field, g);
-		if (!self.hide)
+		var ta = g.globalAlpha;
+		g.globalAlpha = self.a;
 		{
-			self.data.draw(field, g, self);
+			if (!self.hide)
+			{
+				self.data.draw(field, g, self);
+			}
+			self.draw_name(field, g);
 		}
-		self.draw_name(field, g);
+		g.globalAlpha = ta;
 		self.draw_damage_popup(field, g);
 		self.draw_shake_after(field, g);
 	}
@@ -183,6 +196,8 @@ function Enemy(id)
 	
 	self.die = function (field)
 	{
+		self.defeat = true;
+		self.defeat_wait = 30;
 	}
 	
 	self.is_alive = function (field)
@@ -191,6 +206,11 @@ function Enemy(id)
 	}
 	
 	self.is_targetable = function (field)
+	{
+		return self.is_alive(field);
+	}
+	
+	self.can_act = function (field)
 	{
 		return self.is_alive(field);
 	}

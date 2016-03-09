@@ -110,6 +110,7 @@ function HuntScene()
 			}
 			
 			self.update_msg(g);
+			self.update_chain(g);
 			self.update_hero(g);
 			self.update_hand(g);
 			
@@ -226,8 +227,19 @@ function HuntScene()
 						self.executing_action_draw = self.timeline_draw.shift();
 						self.executing_action_draw.ta = 0;
 						self.executing_action_draw.tx += 240;
-						self.executing_action.start(self);
 						self.adjust_action();
+						self.executing_action.prepare(self);
+						if (self.executing_action.is_available(self))
+						{
+							var group = self.executing_action.group;
+							if (group != self.last_group)
+							{
+								self.chain_break();
+							}
+							self.last_group = group;
+							self.chain_add();
+							self.executing_action.start(self);
+						}
 					}
 					else
 					{
@@ -391,6 +403,60 @@ function HuntScene()
 			g.textAlign = "left";
 			g.textBaseline = "top";
 			draw_text_width(g, self.msg, x+r, y+r, x2-x-(r+r), 36);
+		}
+	}
+	
+	self.update_chain = function (g)
+	{
+		if (self.chain)
+		{
+			self.chain_x = lerp(self.chain_x, UI.SCREEN.WIDTH, .2);
+			self.chain_y = 120;
+			if (self.chain > 1)
+			{
+				self.chain_draw_scale = lerp(self.chain_draw_scale, self.chain_scale, .1);
+			}
+		}
+		else
+		{
+			self.chain_x = lerp(self.chain_x, UI.SCREEN.WIDTH+400, .1);
+			self.chain_y = 120;
+		}
+		if (self.chain_x < UI.SCREEN.WIDTH+300)
+		{
+			var c = COLOR.YELLOW;
+			g.fillStyle = c;
+			g.font = UI.GENERAL.CHAIN_FONT;
+			g.textAlign = "right";
+			g.textBaseline = "middle";
+			g.fillText(self.chain_msg, self.chain_x, self.chain_y);
+			g.beginPath();
+			g.lineWidth = 4;
+			g.moveTo(UI.SCREEN.WIDTH, self.chain_y+24);
+			var w = g.measureText(self.chain_msg).width;
+			g.lineTo(self.chain_x-w-40, self.chain_y+24);
+			var grad = g.createLinearGradient(UI.SCREEN.WIDTH, 0, UI.SCREEN.WIDTH-w, 0);
+			grad.addColorStop(0, c);
+			grad.addColorStop(.5, c);
+			grad.addColorStop(1, COLOR.TRANSPARENT);
+			g.strokeStyle = grad;
+			g.stroke();
+			if (self.chain > 1)
+			{
+				g.font = UI.GENERAL.CHAIN_NUMBER_FONT;
+				g.textAlign = "center";
+				g.fillStyle = COLOR.RED;
+				g.strokeStyle = COLOR.YELLOW;
+				g.lineWidth = 4;
+				var x = UI.SCREEN.WIDTH-w-60;
+				var y = self.chain_y;
+				g.save();
+				g.translate(x, y);
+				g.scale(self.chain_draw_scale, self.chain_draw_scale);
+				g.fillText(self.chain, 0, 0);
+				g.strokeText(self.chain, 0, 0);
+				g.restore();
+			}
 		}
 	}
 	
@@ -845,6 +911,7 @@ function HuntScene()
 	{
 		self.player_battler.clear_hp_preview();
 		self.player_battler.clear_mp_preview();
+		self.chain = 0;
 		self.turn_state = HUNT_STATE.TURN_EXECUTE;
 	}
 	
@@ -853,7 +920,48 @@ function HuntScene()
 		self.draw_card(Math.min(self.hand_limit-self.hand.length, self.turn_draw));
 		self.player_battler.regen_mp(self);
 		self.player_battler.fadeout_hp_preview();
+		self.chain_break();
+		var win = true;
+		for (var i=0; i<self.enemy.length; i++)
+		{
+			if (self.enemy[i].is_alive(self))
+			{
+				win = false;
+				break;
+			}
+		}
+		if (win)
+		{
+			self.enemy = [];
+			self.event_setup();
+		}
 		self.turn_state = HUNT_STATE.TURN_END;
+	}
+	
+	self.chain_add = function ()
+	{
+		self.chain++;
+		if (self.chain == 1)
+		{
+			self.chain_msg = "連鎖開始!!";
+		}
+		else
+		{
+			self.chain_scale = 1+(self.chain*0.2);
+			self.chain_draw_scale = self.chain_scale * 5;
+			self.chain_msg = "連鎖!!";
+		}
+	}
+	
+	self.chain_break = function ()
+	{
+		self.chain = 0;
+		self.chain_x = UI.SCREEN.WIDTH+200;
+	}
+	
+	self.get_chain_bonus = function ()
+	{
+		return (self.chain-1) * 0.15;
 	}
 	
 	self.set_helper = function (data)
