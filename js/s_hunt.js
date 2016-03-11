@@ -200,7 +200,6 @@ function HuntScene()
 				}
 				if (self.is_key(INPUT.MENU))
 				{
-					self.remove_preview_action();
 					self.turn_execute();
 					self.key_delay(INPUT.MENU, Infinity);
 				}
@@ -820,6 +819,11 @@ function HuntScene()
 		return self.hand_temp.length > 0;
 	}
 	
+	self.clear_hand_rollback = function ()
+	{
+		self.hand_temp = [];
+	}
+	
 	self.hand_rollback = function ()
 	{
 		if (self.hand_temp.length > 0)
@@ -909,6 +913,8 @@ function HuntScene()
 	
 	self.turn_execute = function ()
 	{
+		self.remove_preview_action();
+		self.clear_hand_rollback();
 		self.player_battler.clear_hp_preview();
 		self.player_battler.clear_mp_preview();
 		self.chain = 0;
