@@ -318,6 +318,14 @@ function Hero(data)
 		}
 	}
 	
+	self.check_die = function (field)
+	{
+		if (!self.is_alive(field))
+		{
+			self.die(field);
+		}
+	}
+	
 	self.die = function (field)
 	{
 	}
@@ -330,6 +338,11 @@ function Hero(data)
 	self.can_act = function (field)
 	{
 		return self.is_alive();
+	}
+	
+	self.is_targetable = function (field)
+	{
+		return true;
 	}
 	
 	self.get_hp_prev_scale = function ()

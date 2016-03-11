@@ -216,33 +216,46 @@ function HuntScene()
 							self.deck.push(self.executing_action.card_id);
 						}
 						self.executing_action = null;
+						self.wait = 30;
+						self.player_battler.check_die(self);
+						for (var i=0; i<self.enemy.length; i++)
+						{
+							self.enemy[i].check_die(self);
+						}
 					}
 				}
 				else
 				{
-					if (self.timeline.length > 0)
+					if (self.wait)
 					{
-						self.executing_action = self.timeline.shift();
-						self.executing_action_draw = self.timeline_draw.shift();
-						self.executing_action_draw.ta = 0;
-						self.executing_action_draw.tx += 240;
-						self.adjust_action();
-						self.executing_action.prepare(self);
-						if (self.executing_action.is_available(self))
-						{
-							var group = self.executing_action.group;
-							if (group != self.last_group)
-							{
-								self.chain_break();
-							}
-							self.last_group = group;
-							self.chain_add();
-							self.executing_action.start(self);
-						}
+						self.wait--;
 					}
 					else
 					{
-						self.turn_end();
+						if (self.timeline.length > 0)
+						{
+							self.executing_action = self.timeline.shift();
+							self.executing_action_draw = self.timeline_draw.shift();
+							self.executing_action_draw.ta = 0;
+							self.executing_action_draw.tx += 240;
+							self.adjust_action();
+							self.executing_action.prepare(self);
+							if (self.executing_action.is_available(self))
+							{
+								var group = self.executing_action.group;
+								if (group != self.last_group)
+								{
+									self.chain_break();
+								}
+								self.last_group = group;
+								self.chain_add();
+								self.executing_action.start(self);
+							}
+						}
+						else
+						{
+							self.turn_end();
+						}
 					}
 				}
 			}
@@ -968,6 +981,52 @@ function HuntScene()
 	self.get_chain_bonus = function ()
 	{
 		return (self.chain-1) * 0.15;
+	}
+	
+	self.get_target = function (card, caster, group)
+	{
+		var target = card.target;
+		var g = (target & TARGET.GROUP_MASK);
+		var r = (target & TARGET.RANGE_MASK);
+		var list = [];
+		switch (g)
+		{
+		case TARGET.SELF:
+			return [caster];
+		case TARGET.ENEMY:
+			if (group == GROUP.ENEMY)
+			{
+				list = [self.player_battler];
+			}
+			else
+			{
+				list = self.enemy;
+			}
+			break;
+		case TARGET.MATE:
+			if (group == GROUP.MATE)
+			{
+				list = [self.player_battler];
+			}
+			else
+			{
+				list = self.enemy;
+			}
+			break;
+		}
+		var res = [];
+		for (var i=0; i<list.length; i++)
+		{
+			if (list[i].is_targetable(self))
+			{
+				res.push(list[i]);
+				if (r == TARGET.SINGLE)
+				{
+					break;
+				}
+			}
+		}
+		return res;
 	}
 	
 	self.set_helper = function (data)

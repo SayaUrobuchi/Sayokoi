@@ -190,6 +190,13 @@ function Enemy(id)
 		if (self.hp <= 0)
 		{
 			self.hp = 0;
+		}
+	}
+	
+	self.check_die = function (field)
+	{
+		if (!self.is_alive(field))
+		{
 			self.die(field);
 		}
 	}

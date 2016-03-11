@@ -41,13 +41,20 @@ function Action(id, caster, is_preview)
 		if (self.target.length > 0)
 		{
 			self.power = [];
-			for (var i=0; i<self.target.length; i++)
+			for (var i=0; i<self.data.effect.length; i++)
 			{
-				self.power.push(self.calc_power(field, self.target[i]));
+				var list = [];
+				for (var j=0; j<self.target[i].length; j++)
+				{
+					list.push(self.calc_power(field, self.data.effect[i], self.target[i][j]));
+				}
+				self.power.push(list);
 			}
 		}
 		self.fcnt = 0;
-		self.wait = 0;
+		self.wait = -1;
+		self.eidx = 0;
+		self.tidx = -1;
 	}
 	
 	self.execute = function (field)
@@ -57,49 +64,68 @@ function Action(id, caster, is_preview)
 			self.is_finished = true;
 			return;
 		}
-		if (self.wait && self.fcnt > self.wait)
+		if (self.fcnt > self.wait)
 		{
-			self.is_finished = true;
-			return;
-		}
-		if (!self.wait)
-		{
-			self.wait = self.fcnt + 50;
-			if (self.data.type)
+			self.tidx++;
+			if (self.tidx >= self.target[self.eidx].length)
 			{
-				self.caster.heal(field, self.power[0]*.8);
+				self.eidx++;
+				self.tidx = 0;
+				self.wait = self.fcnt + 15;
+				if (self.eidx >= self.data.effect.length)
+				{
+					self.is_finished = true;
+					return;
+				}
 			}
 			else
 			{
-				self.target[0].take_damage(field, self.power[0]);
+				self.wait = self.fcnt + 15;
 			}
+			self.execute_effect(field, self.data.effect[self.eidx], 
+				self.target[self.eidx][self.tidx], self.power[self.eidx][self.tidx]);
 		}
 		self.fcnt++;
 	}
 	
-	self.get_target = function (field)
+	self.execute_effect = function (field, effect, target, power)
 	{
-		if (self.group == GROUP.ENEMY)
+		switch (effect.type)
 		{
-			self.target = [field.player_battler];
-		}
-		else
-		{
-			self.target = [];
-			for (var i=0; i<field.enemy.length; i++)
-			{
-				if (field.enemy[i].is_targetable(field))
-				{
-					self.target.push(field.enemy[i]);
-					break;
-				}
-			}
+		case EFFECT.DAMAGE:
+			target.take_damage(field, power);
+			break;
+		case EFFECT.HEAL:
+			target.heal(field, power);
+			break;
 		}
 	}
 	
-	self.calc_power = function (field, target)
+	self.get_target = function (field)
 	{
-		return Math.floor(self.caster.atk * (1+field.get_chain_bonus()));
+		self.target = [];
+		for (var i=0; i<self.data.effect.length; i++)
+		{
+			self.target.push(field.get_target(self.data.effect[i], self.caster, self.group));
+		}
+	}
+	
+	self.calc_power = function (field, effect, target)
+	{
+		var power = 0;
+		if (effect.atk)
+		{
+			power += self.caster.atk * effect.atk / 100;
+		}
+		if (effect.hp)
+		{
+			power += target.hp * effect.hp / 100;
+		}
+		if (effect.mhp)
+		{
+			power += target.mhp * effect.mhp / 100;
+		}
+		return Math.floor(power * (1+field.get_chain_bonus()));
 	}
 	
 	self.is_finish = function ()
