@@ -64,7 +64,15 @@ function Action(id, caster, is_preview)
 			self.is_finished = true;
 			return;
 		}
-		if (self.fcnt > self.wait)
+		if (self.caster.is_casting(field))
+		{
+			return;
+		}
+		if (self.fcnt <= 0)
+		{
+			self.caster.cast_animation(field, self);
+		}
+		else if (self.fcnt > self.wait)
 		{
 			self.tidx++;
 			if (self.tidx >= self.target[self.eidx].length)

@@ -34,7 +34,7 @@ EFFECT_TEMPLATE.SELF_HEAL = function (param)
 {
 	var res = {
 		type: EFFECT.HEAL, 
-		target: TARGET.ENEMY, 
+		target: TARGET.SELF, 
 	};
 	res.atk = param;
 	return res;

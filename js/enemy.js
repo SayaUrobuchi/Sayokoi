@@ -4,8 +4,7 @@ var ENEMY = {};
 var ENEMY_FUNC = {
 	DRAW_NORMAL: function (field, g, self)
 	{
-		g.drawImage(self.data.img, 
-			self.x-self.w/2, self.cy-self.h/2, self.w, self.h);
+		g.drawImage(self.data.img, -self.w/2, -self.h/2, self.w, self.h);
 	}, 
 	DIE_DISAPPEAR: function (field, self)
 	{
@@ -38,6 +37,7 @@ function Enemy(id)
 	{
 		self.update_damage_popup(field);
 		self.update_defeat(field);
+		self.update_cast_shadow(field);
 	}
 	
 	self.update_defeat = function (field)
@@ -99,21 +99,38 @@ function Enemy(id)
 		}
 	}
 	
+	self.update_cast_shadow = function (field)
+	{
+		if (self.cast_shadow_a > 0)
+		{
+			self.cast_shadow_a -= .05;
+			self.cast_shadow_scale += .06;
+		}
+	}
+	
 	self.draw = function (field, g)
 	{
 		self.draw_shake(field, g);
 		var ta = g.globalAlpha;
 		g.globalAlpha = self.a;
 		{
-			if (!self.hide)
-			{
-				self.data.draw(field, g, self);
-			}
+			self.draw_body(field, g);
 			self.draw_name(field, g);
+			self.draw_cast_shadow(field, g);
 		}
 		g.globalAlpha = ta;
 		self.draw_damage_popup(field, g);
 		self.draw_shake_after(field, g);
+	}
+	
+	self.draw_body = function (field, g)
+	{
+		if (!self.hide)
+		{
+			g.translate(self.x, self.cy);
+			self.data.draw(field, g, self);
+			g.translate(-self.x, -self.cy);
+		}
 	}
 	
 	self.draw_name = function (field, g)
@@ -142,6 +159,22 @@ function Enemy(id)
 			g.textAlign = "center";
 			g.font = UI.GENERAL.DAMAGE_FONT;
 			g.fillText(p.value, 0, 0);
+			g.strokeStyle = p.stroke_color;
+			g.lineWidth = 2;
+			g.strokeText(p.value, 0, 0);
+			g.restore();
+		}
+	}
+	
+	self.draw_cast_shadow = function (field, g)
+	{
+		if (self.cast_shadow_a > 0)
+		{
+			g.save();
+			g.translate(self.x, self.cy);
+			g.scale(self.cast_shadow_scale, self.cast_shadow_scale);
+			g.globalAlpha = self.cast_shadow_a;
+			self.data.draw(field, g, self);
 			g.restore();
 		}
 	}
@@ -183,6 +216,7 @@ function Enemy(id)
 			step: 0, 
 			scale: 1.8, 
 			color: COLOR.RED, 
+			stroke_color: COLOR.YELLOW, 
 		});
 		var shake_power = (1+value/self.mhp*2) * 6;
 		self.shake(shake_power, 20);
@@ -215,6 +249,17 @@ function Enemy(id)
 	self.is_targetable = function (field)
 	{
 		return self.is_alive(field);
+	}
+	
+	self.cast_animation = function (field, action)
+	{
+		self.cast_shadow_a = 1;
+		self.cast_shadow_scale = 1;
+	}
+	
+	self.is_casting = function (field)
+	{
+		return self.cast_shadow_a > 0;
 	}
 	
 	self.can_act = function (field)

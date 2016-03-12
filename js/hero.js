@@ -119,8 +119,8 @@ function Hero(data)
 				g.fillStyle = grad;
 				g.fillRect(0, 0, w*self.hp_draw_back, h);
 				grad = g.createLinearGradient(0, 0, 0, h);
-				grad.addColorStop(0, COLOR.DARK_GREEN);
-				grad.addColorStop(1, COLOR.DARK_GREEN2);
+				grad.addColorStop(0, COLOR.GREEN);
+				grad.addColorStop(1, COLOR.DARK_GREEN3);
 				g.fillStyle = grad;
 				g.fillRect(0, 0, w*self.hp_draw_front, h);
 			}
@@ -298,7 +298,6 @@ function Hero(data)
 		if (self.hp < 0)
 		{
 			self.hp = 0;
-			self.die(field);
 		}
 	}
 	
@@ -343,6 +342,15 @@ function Hero(data)
 	self.is_targetable = function (field)
 	{
 		return true;
+	}
+	
+	self.cast_animation = function (field)
+	{
+	}
+	
+	self.is_casting = function (field)
+	{
+		return false;
 	}
 	
 	self.get_hp_prev_scale = function ()
