@@ -10,6 +10,10 @@ var ENEMY_FUNC = {
 	{
 		self.disappear = true;
 	}, 
+	AI_ALWAYS_FIRST: function (field, self)
+	{
+		return [self.data.action[0], ];
+	}, 
 };
 
 function Enemy(id)
@@ -204,6 +208,12 @@ function Enemy(id)
 		self.shake_power = power;
 		self.shake_length = length;
 		self.shake_count = 0;
+	}
+	
+	self.get_next_action = function (field)
+	{
+		var card = self.data.ai(field, self);
+		return [Action(card, self)];
 	}
 	
 	self.take_damage = function (field, value)

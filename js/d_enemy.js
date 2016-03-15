@@ -5,6 +5,7 @@ var ENEMY_TEMPLATE = {
 	sy: 20, 
 	draw: ENEMY_FUNC.DRAW_NORMAL, 
 	die: ENEMY_FUNC.DIE_DISAPPEAR, 
+	ai: ENEMY_FUNC.AI_ALWAYS_FIRST, 
 };
 
 ENEMY[ENEMY.TEST0 = 999] = extend(ENEMY_TEMPLATE, {
@@ -13,6 +14,7 @@ ENEMY[ENEMY.TEST0 = 999] = extend(ENEMY_TEMPLATE, {
 	w: 220, 
 	hp: 70, 
 	atk: 8, 
+	action: [99998, ], 
 });
 
 ENEMY[ENEMY.TEST1 = 998] = extend(ENEMY_TEMPLATE, {
@@ -23,6 +25,7 @@ ENEMY[ENEMY.TEST1 = 998] = extend(ENEMY_TEMPLATE, {
 	sy: 10, 
 	hp: 50, 
 	atk: 12, 
+	action: [99997, ], 
 });
 
 ENEMY[ENEMY.TEST2 = 997] = extend(ENEMY_TEMPLATE, {
@@ -31,4 +34,5 @@ ENEMY[ENEMY.TEST2 = 997] = extend(ENEMY_TEMPLATE, {
 	w: 180, 
 	hp: 90, 
 	atk: 4, 
+	action: [99999, ], 
 });

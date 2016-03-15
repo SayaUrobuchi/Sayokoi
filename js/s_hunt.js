@@ -915,11 +915,21 @@ function HuntScene()
 		}
 	}
 	
+	self.insert_enemy_action = function ()
+	{
+		for (var i=0; i<self.enemy.length; i++)
+		{
+			var actions = self.enemy[i].get_next_action(self);
+			for (var j=0; j<actions.length; j++)
+			{
+				self.insert_action(actions[j]);
+			}
+		}
+	}
+	
 	self.turn_start = function ()
 	{
-		self.insert_action(Action(99998, self.enemy[0]));
-		self.insert_action(Action(99997, self.enemy[1]));
-		self.insert_action(Action(99999, self.enemy[2]));
+		self.insert_enemy_action();
 		self.insert_preview_action();
 		self.turn_state = HUNT_STATE.TURN_PREPARE;
 	}
